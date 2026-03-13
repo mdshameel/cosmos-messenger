@@ -427,6 +427,45 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 .ssb{font-size:10px;color:var(--dim);line-height:1.9}
 
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+/* ── PROFILE MODAL ── */
+#profile-modal{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.82);
+  backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .28s}
+#profile-modal.on{opacity:1;pointer-events:all}
+.prof-box{width:360px;max-width:calc(100vw - 20px);background:#030312;
+  border:1px solid var(--bdr);border-radius:18px;padding:28px;
+  display:flex;flex-direction:column;gap:16px;
+  box-shadow:0 30px 80px rgba(0,0,0,.95)}
+.prof-title{font-family:var(--FD);font-size:14px;font-weight:700;color:#fff;
+  letter-spacing:.06em;text-align:center}
+.prof-av-big{width:64px;height:64px;border-radius:50%;background:rgba(91,127,255,.15);
+  border:2px solid var(--acc);display:flex;align-items:center;justify-content:center;
+  font-size:32px;margin:0 auto;cursor:pointer;transition:transform .18s}
+.prof-av-big:hover{transform:scale(1.08)}
+.prof-avs{display:flex;justify-content:center;flex-wrap:wrap;gap:7px}
+.prof-av{width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:#0a0a22;border:2px solid var(--bdr);transition:all .18s}
+.prof-av:hover{transform:scale(1.1)}
+.prof-av.sel{border-color:var(--acc);background:rgba(91,127,255,.15);transform:scale(1.13)}
+.prof-inp{width:100%;background:rgba(255,255,255,.07);border:1px solid var(--bdr);
+  border-radius:10px;padding:11px 14px;color:#fff;font-family:var(--FB);
+  font-size:14px;outline:none;text-align:center;transition:border-color .18s}
+.prof-inp:focus{border-color:var(--acc)}
+.prof-save{width:100%;padding:12px;border:none;border-radius:10px;
+  background:var(--acc);color:#fff;font-family:var(--FD);font-size:11px;
+  font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .18s}
+.prof-save:hover{background:#7b9bff;transform:translateY(-1px)}
+.prof-cancel{width:100%;padding:10px;border-radius:10px;background:transparent;
+  border:1px solid var(--bdr);color:var(--dim);font-family:var(--FB);
+  font-size:12px;cursor:pointer;transition:all .18s}
+.prof-cancel:hover{color:#fff}
+/* kick button */
+.kick-btn{width:18px;height:18px;border-radius:50%;background:rgba(248,113,113,.12);
+  border:1px solid rgba(248,113,113,.3);color:#f87171;font-size:11px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .18s;line-height:1}
+.kick-btn:hover{background:rgba(248,113,113,.3);border-color:#f87171}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:#141430;border-radius:2px}
 </style>
@@ -480,8 +519,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
   <button class="tbtn" onclick="toggleOnline()" style="gap:4px">
     <div class="conn-dot online" style="margin:0"></div> Online
   </button>
-  <div class="tb-av" id="tb-av">🧑</div>
-  <div class="tb-nm" id="tb-nm">—</div>
+  <div class="tb-av" id="tb-av" onclick="openProfile()" title="Edit profile" style="cursor:pointer">🧑</div>
+  <div class="tb-nm" id="tb-nm" onclick="openProfile()" style="cursor:pointer">—</div>
 </div>
 
 <!-- NAV -->
@@ -562,6 +601,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
     <span class="lv">🔴 LIVE</span>
     <span id="c-members-count">— members</span>
     <div style="flex:1"></div>
+    <span id="c-expiry-badge" style="display:none;font-size:8px;color:var(--gld);
+      background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);
+      border-radius:5px;padding:2px 7px;letter-spacing:.06em">⏱ 24H AUTO-DELETE</span>
     <span id="c-online-count" style="color:var(--grn)">— online</span>
   </div>
   <div id="msgs"></div>
@@ -598,6 +640,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
         <svg viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
       </button>
     </div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profile-modal">
+  <div class="prof-box">
+    <div class="prof-title">✦ Edit Profile</div>
+    <div class="prof-av-big" id="prof-av-big">🧑</div>
+    <div class="prof-avs" id="prof-avs"></div>
+    <input class="prof-inp" id="prof-nm" placeholder="Your name…" maxlength="24" autocomplete="off"/>
+    <button class="prof-save" onclick="saveProfile()">Save Changes →</button>
+    <button class="prof-cancel" onclick="closeProfile()">Cancel</button>
   </div>
 </div>
 
@@ -1164,11 +1218,20 @@ async function loadAll(){
 }
 
 async function loadMessages(groupId, limit=60){
-  const {data} = await SB.from('messages')
-    .select('*')
-    .eq('group_id',groupId)
-    .order('created_at',{ascending:true})
-    .limit(limit);
+  // For public groups: auto-delete messages older than 24h
+  const grp = GROUPS[groupId];
+  if(grp && grp.is_public){
+    const cutoff = new Date(Date.now() - 24*60*60*1000).toISOString();
+    SB.from('messages').delete().eq('group_id', groupId).lt('created_at', cutoff)
+      .then(()=>{}); // fire and forget
+  }
+  // Only fetch messages within 24h for public, all for private
+  const grpPub = grp && grp.is_public;
+  const cutoff24 = new Date(Date.now() - 24*60*60*1000).toISOString();
+  let q = SB.from('messages').select('*').eq('group_id',groupId)
+    .order('created_at',{ascending:true}).limit(limit);
+  if(grpPub) q = q.gte('created_at', cutoff24);
+  const {data} = await q;
   return data||[];
 }
 
@@ -1374,13 +1437,16 @@ function openInfo(id){
   SB.from('members').select('*').eq('target_id',id).then(({data})=>{
     ml.innerHTML='';
     const mems=data||[];
-    mems.slice(0,7).forEach(m=>{
+    const isCreator = ME && g.created_by === ME.id;
+    mems.slice(0,12).forEach(m=>{
       const d=document.createElement('div'); d.className='mem-row';
       const isOnline=!!ONLINE[m.user_id]||(m.user_id===ME.id);
+      const canKick = isCreator && m.user_id !== ME.id;
       d.innerHTML=`<div class="mav">${m.user_avatar||'🧑'}</div>
         <div class="mname">${m.user_name}</div>
-        <div class="mrole">${m.user_id===g.created_by?'Admin':'Member'}</div>
-        ${isOnline?'<div class="monl"></div>':''}`;
+        <div class="mrole">${m.user_id===g.created_by?'👑 Admin':'Member'}</div>
+        ${isOnline?'<div class="monl"></div>':''}
+        ${canKick?`<button class="kick-btn" title="Remove member" onclick="kickMember('${m.user_id}','${m.user_name}','${id}')">✕</button>`:''}`;
       ml.appendChild(d);
     });
     if(!mems.length) ml.innerHTML='<div style="font-size:10px;color:var(--dim)">No members yet.</div>';
@@ -1507,6 +1573,8 @@ async function openChat(id){
   document.getElementById('c-nm').textContent=g.name;
   document.getElementById('c-sb').textContent=g.description||'';
   document.getElementById('c-members-count').textContent=`${g.member_count||1} members`;
+  const badge = document.getElementById('c-expiry-badge');
+  badge.style.display = g.is_public ? 'inline' : 'none';
 
   closeInfo(); closeDM();
   document.getElementById('chat-panel').classList.add('open');
@@ -1516,8 +1584,9 @@ async function openChat(id){
   msgs.innerHTML='<div class="empty-chat"><span>⏳</span>Loading messages…</div>';
   const history=await loadMessages(id);
   msgs.innerHTML='';
+  const isPublicGrp = GROUPS[id] && GROUPS[id].is_public;
   if(!history.length){
-    msgs.innerHTML='<div class="empty-chat"><span>💬</span>No messages yet.<br>Say hello!</div>';
+    msgs.innerHTML=`<div class="empty-chat"><span>💬</span>No messages yet.<br>Say hello!${isPublicGrp?'<br><span style="font-size:9px;color:var(--dim);opacity:.7">Messages auto-delete after 24h</span>':''}</div>`;
   } else {
     const sep=document.createElement('div');sep.className='dsep';sep.textContent='Message history';
     msgs.appendChild(sep);
@@ -1571,6 +1640,12 @@ async function sendMsg(){
   appendMessage({...msgData,created_at:new Date().toISOString()},true);
   // Send to DB (realtime will push to others)
   const {error}=await SB.from('messages').insert(msgData);
+  // Cleanup old messages in public groups on every send
+  const _grp = GROUPS[_chatId];
+  if(_grp && _grp.is_public){
+    const _cut = new Date(Date.now()-24*60*60*1000).toISOString();
+    SB.from('messages').delete().eq('group_id',_chatId).lt('created_at',_cut).then(()=>{});
+  }
   if(error){showToast('⚠ Send failed',true);return;}
   // Update message count
   const g=GROUPS[_chatId];
@@ -1901,6 +1976,86 @@ async function doCreate(){
 }
 
 /* ═══════════════════════════════════════════════════════
+   KICK MEMBER
+═══════════════════════════════════════════════════════ */
+async function kickMember(userId, userName, targetId){
+  if(!ME) return;
+  const g = SYSTEMS[targetId]||GROUPS[targetId];
+  if(!g || g.created_by !== ME.id){ showToast('⚠ Only the creator can remove members', true); return; }
+  if(!confirm(`Remove "${userName}" from "${g.name}"?`)) return;
+
+  const {error} = await SB.from('members')
+    .delete()
+    .eq('target_id', targetId)
+    .eq('user_id', userId);
+  if(error){ showToast('⚠ Could not remove: '+error.message, true); return; }
+
+  // Update member count
+  const table = SYSTEMS[targetId] ? 'systems' : 'groups';
+  await SB.from(table).update({member_count: Math.max(1,(g.member_count||1)-1)}).eq('id', targetId);
+  if(SYSTEMS[targetId]) SYSTEMS[targetId].member_count = Math.max(1,(g.member_count||1)-1);
+  if(GROUPS[targetId]) GROUPS[targetId].member_count = Math.max(1,(g.member_count||1)-1);
+
+  showToast(`✓ "${userName}" has been removed.`);
+  refreshInfoIfOpen(targetId);
+}
+
+/* ═══════════════════════════════════════════════════════
+   PROFILE MODAL
+═══════════════════════════════════════════════════════ */
+const AVTS_P=['🧑','👩','👨','🧔','👱','🧕','👩‍💻','👨‍💻','🧑‍🚀','🦸','🧙','🤖','🦊','🐉','🌟','🎭'];
+
+function openProfile(){
+  if(!ME) return;
+  // Populate avatar picker
+  const g = document.getElementById('prof-avs');
+  g.innerHTML = '';
+  AVTS_P.forEach(a=>{
+    const d = document.createElement('div');
+    d.className = 'prof-av' + (ME.avatar===a?' sel':'');
+    d.textContent = a;
+    d.onclick = ()=>{
+      document.querySelectorAll('.prof-av').forEach(x=>x.classList.remove('sel'));
+      d.classList.add('sel');
+      document.getElementById('prof-av-big').textContent = a;
+    };
+    g.appendChild(d);
+  });
+  document.getElementById('prof-av-big').textContent = ME.avatar||'🧑';
+  document.getElementById('prof-nm').value = ME.name||'';
+  document.getElementById('profile-modal').classList.add('on');
+  setTimeout(()=>document.getElementById('prof-nm').focus(), 80);
+}
+
+function closeProfile(){
+  document.getElementById('profile-modal').classList.remove('on');
+}
+
+async function saveProfile(){
+  const name = document.getElementById('prof-nm').value.trim();
+  if(!name){ showToast('⚠ Name cannot be empty', true); return; }
+  const av = document.querySelector('.prof-av.sel')?.textContent || ME.avatar || '🧑';
+  const oldName = ME.name, oldAv = ME.avatar;
+  ME.name = name; ME.avatar = av;
+  LS.s('cos_me', ME);
+
+  // Update topbar
+  document.getElementById('tb-av').textContent = av;
+  document.getElementById('tb-nm').textContent = name;
+
+  // Update all member records in DB
+  if(SB && (name !== oldName || av !== oldAv)){
+    await SB.from('members').update({user_name: name, user_avatar: av}).eq('user_id', ME.id);
+    // Refresh presence so others see new name/avatar
+    if(presenceSub){
+      try{ await presenceSub.track({userId:ME.id, name, avatar:av}); }catch(e){}
+    }
+  }
+  closeProfile();
+  showToast('✓ Profile updated!');
+}
+
+/* ═══════════════════════════════════════════════════════
    UTILS
 ═══════════════════════════════════════════════════════ */
 function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1923,7 +2078,7 @@ document.getElementById('ci').onkeydown=e=>{ if(e.key==='Enter')sendMsg(); else 
 document.getElementById('dm-send').onclick=sendDM;
 document.getElementById('dm-ci').onkeydown=e=>{ if(e.key==='Enter')sendDM(); };
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ closeChat(); closeInfo(); closeDM(); closeModal(); closeJoinCode(); }
+  if(e.key==='Escape'){ closeChat(); closeInfo(); closeDM(); closeModal(); closeJoinCode(); closeProfile(); }
 });
 
 /* ═══════════════════════════════════════════════════════
