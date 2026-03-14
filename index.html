@@ -202,7 +202,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 
 /* ── ONLINE PANEL (left sidebar) ── */
 #online-panel{
-  position:fixed;top:50px;left:0;bottom:0;width:220px;z-index:50;
+  position:fixed;top:56px;left:0;bottom:0;width:220px;z-index:50;
   background:rgba(3,3,18,.95);border-right:1px solid var(--bdr);
   display:flex;flex-direction:column;
   transform:translateX(-100%);transition:transform .3s ease;
@@ -231,6 +231,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 .op-empty{text-align:center;padding:30px 12px;color:var(--dim);font-size:10px;line-height:2}
 
 /* ── HINT / TOAST ── */
+.hint-mobile{display:none}
+@media(max-width:600px){.hint-desktop{display:none}.hint-mobile{display:inline}
+  #hint{bottom:68px}}
 #hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
   background:rgba(3,3,16,.88);border:1px solid var(--bdr);backdrop-filter:blur(8px);
   border-radius:18px;padding:7px 15px;font-size:10px;color:var(--dim);
@@ -246,7 +249,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 #toast.err{background:rgba(24,4,4,.95);border-color:rgba(248,113,113,.4);color:#fca5a5}
 
 /* ── PANELS (right) ── */
-.panel{position:fixed;top:50px;right:0;bottom:0;width:390px;
+.panel{position:fixed;top:56px;right:0;bottom:0;width:390px;
   background:linear-gradient(180deg,rgba(4,4,22,.99) 0%,rgba(2,2,14,.99) 100%);
   border-left:1px solid rgba(91,127,255,.18);
   display:flex;flex-direction:column;z-index:50;
@@ -394,7 +397,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 #csend svg{width:13px;height:13px;fill:#fff}
 
 /* ── DM PANEL ── */
-#dm-panel{position:fixed;top:50px;right:0;bottom:0;width:380px;
+#dm-panel{position:fixed;top:56px;right:0;bottom:0;width:380px;
   background:var(--panel);border-left:1px solid var(--bdr);
   display:flex;flex-direction:column;z-index:51;
   transform:translateX(100%);transition:transform .36s cubic-bezier(.3,.72,0,1);
@@ -562,6 +565,161 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 .kick-btn:hover{background:rgba(248,113,113,.3);border-color:#f87171}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:#141430;border-radius:2px}
+
+/* ══════════════════════════════════════════════
+   MOBILE BOTTOM NAV
+══════════════════════════════════════════════ */
+#mobile-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;height:60px;z-index:65;
+  background:linear-gradient(180deg,rgba(2,2,18,.97),rgba(1,1,12,.99));
+  border-top:1px solid rgba(91,127,255,.18);
+  backdrop-filter:blur(24px);
+  align-items:center;justify-content:space-around;padding:0 4px;
+  box-shadow:0 -4px 24px rgba(0,0,0,.6)}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 10px;border-radius:10px;cursor:pointer;transition:all .18s;
+  background:transparent;border:none;color:rgba(91,127,255,.5);min-width:52px}
+.mnav-btn:active{transform:scale(.9)}
+.mnav-btn.active{color:var(--acc)}
+.mnav-ico{font-size:18px;line-height:1}
+.mnav-lbl{font-size:8px;font-family:var(--FD);letter-spacing:.06em;text-transform:uppercase}
+
+/* ══════════════════════════════════════════════
+   TABLET (≤900px)
+══════════════════════════════════════════════ */
+@media(max-width:900px){
+  /* Panels go full-width */
+  .panel{width:100vw;top:56px}
+  #dm-panel{width:100vw;top:56px}
+  #online-panel{width:280px;top:56px}
+
+  /* Topbar compact — hide stats */
+  .tstat{display:none}
+  .logo-sub{display:none}
+  #bar{gap:6px;padding:0 10px}
+  .vsep{display:none}
+  .tbtn{padding:6px 9px;font-size:8px;letter-spacing:.04em}
+
+  /* Minimap smaller */
+  #mm{width:100px;height:100px}
+  #nav{left:110px;bottom:140px}
+  #coords{left:110px;bottom:20px;font-size:8px}
+
+  /* Modals */
+  .mbox{width:calc(100vw - 16px);max-height:90vh;overflow-y:auto}
+  .gs-box{width:calc(100vw - 16px)}
+  .prof-box{width:calc(100vw - 16px)}
+}
+
+/* ══════════════════════════════════════════════
+   PHONE (≤600px)
+══════════════════════════════════════════════ */
+@media(max-width:600px){
+  /* Topbar — logo only + profile + new system */
+  #bar{height:52px;gap:6px;padding:0 10px}
+  .tstat{display:none}
+  .logo-sub{display:none}
+  .vsep{display:none}
+  .live-pill{display:none}
+
+  /* Hide join/group buttons from topbar — moved to bottom nav */
+  #btn-grp{display:none}
+  #bar .tbtn:not(.pri):not(#btn-sys){display:none}
+  #btn-sys{font-size:8px;padding:5px 8px}
+
+  /* Topbar profile shrink */
+  .tb-nm{display:none}
+  .tb-av-wrap{padding:4px}
+
+  /* Panels full screen */
+  .panel{width:100vw;top:52px;bottom:60px}
+  #dm-panel{width:100vw;top:52px;bottom:60px}
+  #online-panel{width:100vw;top:52px;bottom:60px}
+
+  /* Show mobile nav */
+  #mobile-nav{display:flex}
+
+  /* Minimap smaller + repositioned above mobile nav */
+  #mm{width:80px;height:80px;bottom:68px;left:10px}
+  #mm-lbl{font-size:6px}
+  #nav{left:96px;bottom:130px;gap:4px}
+  .navbtn{width:28px;height:28px;font-size:13px}
+  #zoom-pct{font-size:7px}
+  #coords{left:96px;bottom:72px;font-size:7px}
+
+  /* Chat input — bigger touch targets */
+  .cin{padding:8px 10px 10px}
+  .cinrow{padding:10px 10px;border-radius:16px}
+  #ci{font-size:14px}
+  .voice-btn,.file-btn,.add-reaction{width:34px;height:34px;font-size:16px}
+  #csend{width:36px;height:36px;border-radius:12px}
+
+  /* Message bubbles adapt */
+  .mbody{max-width:calc(100vw - 80px)}
+  .mtext{font-size:13px}
+
+  /* Modals full screen on phone */
+  .mbox{width:100vw;max-width:100vw;border-radius:16px 16px 0 0;
+    position:fixed;bottom:0;left:0;right:0;max-height:92vh;overflow-y:auto}
+  #ov{align-items:flex-end}
+  .jcode-box{width:100vw;max-width:100vw;border-radius:16px 16px 0 0;
+    position:fixed;bottom:0;left:0}
+  #jcode-modal{align-items:flex-end}
+  .gs-box{width:100vw;max-width:100vw;border-radius:16px 16px 0 0;
+    max-height:92vh;position:fixed;bottom:0}
+  #grp-settings-modal{align-items:flex-end}
+  .prof-box{width:100vw;max-width:100vw;border-radius:16px 16px 0 0;
+    position:fixed;bottom:0}
+  #profile-modal{align-items:flex-end}
+
+  /* Toast repositioned above mobile nav */
+  #toast{top:auto;bottom:70px;transform:translateX(-50%) translateY(4px)}
+  #toast.on{transform:translateX(-50%) translateY(0)}
+
+  /* Hint above mobile nav */
+  #hint{bottom:68px;font-size:9px;padding:6px 12px}
+
+  /* Canvas offset for topbar only (no bottom offset for canvas itself) */
+  #cv{top:0}
+
+  /* ID card */
+  .id-card{padding:24px 18px;border-radius:16px}
+  .setup-card{padding:22px 16px;border-radius:16px}
+}
+
+/* ══════════════════════════════════════════════
+   TINY PHONE (≤380px)
+══════════════════════════════════════════════ */
+@media(max-width:380px){
+  .tbtn.pri{font-size:7px;padding:5px 7px}
+  #mm{display:none}
+  #nav{left:10px;bottom:72px}
+  #coords{display:none}
+  .mbody{max-width:calc(100vw - 70px)}
+}
+
+/* ══════════════════════════════════════════════
+   LANDSCAPE PHONE
+══════════════════════════════════════════════ */
+@media(max-width:900px) and (orientation:landscape) and (max-height:500px){
+  #mobile-nav{height:48px}
+  .panel{bottom:48px;top:52px}
+  #dm-panel{bottom:48px;top:52px}
+  #online-panel{bottom:48px}
+  #mm{bottom:56px;width:72px;height:72px}
+  #nav{bottom:112px;left:84px}
+  #coords{bottom:58px;left:84px}
+}
+
+/* Safe area for notched phones (iPhone X+) */
+@supports(padding:max(0px)){
+  #bar{padding-left:max(16px,env(safe-area-inset-left));
+       padding-right:max(16px,env(safe-area-inset-right))}
+  #mobile-nav{padding-bottom:max(0px,env(safe-area-inset-bottom));
+              height:calc(60px + env(safe-area-inset-bottom))}
+  .panel,.panel.open{padding-bottom:max(0px,env(safe-area-inset-bottom))}
+}
 
 /* ── MESSAGE CONTEXT MENU ── */
 .msg-menu{position:fixed;z-index:300;background:#09091f;
@@ -789,8 +947,35 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
   </div>
 </div>
 
+<!-- MOBILE BOTTOM NAV -->
+<div id="mobile-nav">
+  <button class="mnav-btn active" id="mnav-explore" onclick="mnavTab('explore')">
+    <span class="mnav-ico">🌌</span>
+    <span class="mnav-lbl">Explore</span>
+  </button>
+  <button class="mnav-btn" id="mnav-join" onclick="openJoinCode()">
+    <span class="mnav-ico">🔗</span>
+    <span class="mnav-lbl">Join</span>
+  </button>
+  <button class="mnav-btn" id="mnav-create" onclick="openModal('system')">
+    <span class="mnav-ico">☀️</span>
+    <span class="mnav-lbl">New</span>
+  </button>
+  <button class="mnav-btn" id="mnav-group" onclick="openModal('group')">
+    <span class="mnav-ico">🪐</span>
+    <span class="mnav-lbl">Group</span>
+  </button>
+  <button class="mnav-btn" id="mnav-online" onclick="toggleOnline()">
+    <span class="mnav-ico">👥</span>
+    <span class="mnav-lbl" id="mnav-online-lbl">Online</span>
+  </button>
+</div>
+
 <!-- HINT / TOAST -->
-<div id="hint">🖱 Drag to explore · Scroll to zoom · Click a sphere to interact</div>
+<div id="hint" id="hint-txt">
+  <span class="hint-desktop">🖱 Drag to explore · Scroll to zoom · Click a sphere to interact</span>
+  <span class="hint-mobile" style="display:none">👆 Drag to explore · Pinch to zoom · Tap a sphere</span>
+</div>
 <div id="toast"></div>
 
 <!-- INFO PANEL -->
@@ -1685,7 +1870,9 @@ function hitTest(sx,sy){
   }
   return null;
 }
-const AY=e=>e.clientY-50;
+// Adjust Y for topbar height (56px desktop, 52px mobile)
+const BAR_H=()=>window.innerWidth<=600?52:56;
+const AY=e=>e.clientY-BAR_H();
 canvas.addEventListener('mousedown',e=>{
   drag={on:true,sx:e.clientX,sy:AY(e),ox:tgt.x,oy:tgt.y,moved:false};
   canvas.classList.add('drag');
@@ -2002,6 +2189,9 @@ function renderOnlineList(){
 
   // Count only — no names for privacy
   if(lbl) lbl.textContent = cnt>0?`${cnt+1} active`:'Universe';
+  // Also update mobile nav
+  const mlbl=document.getElementById('mnav-online-lbl');
+  if(mlbl) mlbl.textContent=cnt>0?`${cnt+1}`:'Online';
 
   if(!cnt){
     list.innerHTML=`<div class="op-empty">
@@ -2044,6 +2234,18 @@ let onlinePanelOpen=false;
 function toggleOnline(){
   onlinePanelOpen=!onlinePanelOpen;
   document.getElementById('online-panel').classList.toggle('open',onlinePanelOpen);
+  // Update mobile nav badge
+  const lbl=document.getElementById('mnav-online-lbl');
+  const cnt=Object.keys(ONLINE).length;
+  if(lbl) lbl.textContent=cnt>0?`${cnt+1}`:'Online';
+}
+
+function mnavTab(tab){
+  document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mnav-'+tab)?.classList.add('active');
+  // Close any open panels when going back to explore
+  if(tab==='explore'){ closeChat(); closeInfo(); closeDM();
+    if(onlinePanelOpen) toggleOnline(); }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2221,6 +2423,9 @@ async function openChat(id){
 
   closeInfo(); closeDM();
   document.getElementById('chat-panel').classList.add('open');
+  // Mobile: mark explore as active (panel covers screen)
+  document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mnav-explore')?.classList.add('active');
 
   // Load history
   const msgs=document.getElementById('msgs');
