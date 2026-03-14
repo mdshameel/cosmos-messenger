@@ -433,6 +433,42 @@ button,input,[role=button]{touch-action:manipulation}
 @keyframes msgin{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
 .msg-time{font-size:7.5px;color:var(--dim);margin-top:3px;opacity:.7}
 .msg.me .msg-time{text-align:right}
+/* ── REPLY BAR (above input) ── */
+#reply-bar{
+  display:none;padding:8px 12px;
+  background:rgba(91,127,255,.06);
+  border-top:1px solid rgba(91,127,255,.12);
+  border-left:3px solid var(--acc);
+  flex-shrink:0;align-items:center;gap:8px}
+#reply-bar.show{display:flex}
+.reply-bar-content{flex:1;min-width:0}
+.reply-bar-name{font-size:9px;font-weight:600;color:var(--acc);margin-bottom:1px;
+  font-family:var(--FD);letter-spacing:.04em}
+.reply-bar-text{font-size:11px;color:var(--dim);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.reply-bar-close{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.06);
+  border:1px solid var(--bdr);color:var(--dim);font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .15s;line-height:1}
+.reply-bar-close:hover{color:#fff;background:rgba(248,113,113,.15);border-color:var(--red)}
+
+/* ── REPLY QUOTE inside message bubble ── */
+.msg-reply-quote{
+  border-left:2px solid var(--acc);
+  padding:4px 8px;margin-bottom:5px;border-radius:0 6px 6px 0;
+  background:rgba(0,0,0,.18);cursor:pointer}
+.msg.me .msg-reply-quote{border-left-color:rgba(255,255,255,.5);background:rgba(0,0,0,.15)}
+.reply-quote-name{font-size:9px;font-weight:600;color:var(--acc);margin-bottom:1px}
+.msg.me .reply-quote-name{color:rgba(255,255,255,.7)}
+.reply-quote-text{font-size:10.5px;color:var(--dim);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.msg.me .reply-quote-text{color:rgba(255,255,255,.55)}
+
+/* ── FORWARD BADGE inside message ── */
+.msg-forwarded{font-size:9px;color:var(--dim);margin-bottom:3px;
+  display:flex;align-items:center;gap:4px;opacity:.7}
+.msg-forwarded svg{width:11px;height:11px;fill:currentColor;flex-shrink:0}
+
 .cin{padding:10px 12px 14px;
   border-top:1px solid rgba(91,127,255,.1);
   background:linear-gradient(180deg,rgba(3,3,16,.6),rgba(2,2,12,.9));
@@ -1200,6 +1236,15 @@ button,input,[role=button]{touch-action:manipulation}
   </div>
   <div id="msgs"></div>
   <div class="typing-bar" id="typing-bar"></div>
+
+  <!-- REPLY BAR (slides up when replying) -->
+  <div id="reply-bar">
+    <div class="reply-bar-content">
+      <div class="reply-bar-name" id="reply-bar-name">—</div>
+      <div class="reply-bar-text" id="reply-bar-text">—</div>
+    </div>
+    <button class="reply-bar-close" onclick="cancelReply()">×</button>
+  </div>
 
   <!-- VOICE RECORDING BAR (shows while recording) -->
   <div id="voice-recording-bar">
@@ -2683,10 +2728,29 @@ function appendMessage(m, isNew){
     contentHtml=`<div class="mtext">${esc(m.content)}</div>`;
   }
 
+  // Reply quote block
+  let replyHtml='';
+  if(m.reply_to_id && m.reply_to_sender && m.reply_to_text){
+    const snip=esc(m.reply_to_text).slice(0,80)+(m.reply_to_text.length>80?'…':'');
+    replyHtml=`<div class="msg-reply-quote" onclick="scrollToMsg('${m.reply_to_id}')">
+      <div class="reply-quote-name">${esc(m.reply_to_sender)}</div>
+      <div class="reply-quote-text">${snip}</div>
+    </div>`;
+  }
+
+  // Forwarded badge
+  let fwdHtml='';
+  if(m.is_forwarded){
+    fwdHtml=`<div class="msg-forwarded">
+      <svg viewBox="0 0 16 16"><path d="M9.5 3.5L14 8l-4.5 4.5V9.5C5 9.5 2.5 11 2 14c-.5-3 1-7 7.5-7V3.5z"/></svg>
+      Forwarded
+    </div>`;
+  }
+
   d.innerHTML=`<div class="mav2">${m.sender_avatar||'🧑'}</div>
     <div class="mbody" style="position:relative">
       <div class="mmeta">${isSelf?'You':m.sender_name} · ${t}</div>
-      ${contentHtml}
+      ${fwdHtml}${replyHtml}${contentHtml}
       <div class="msg-reactions" id="reactions-${m.id||''}"></div>
       <div class="msg-time">${t}</div>
     </div>`;
@@ -2748,8 +2812,13 @@ async function sendMsg(){
   const msgData={
     group_id:_chatId, sender_id:ME.id,
     sender_name:ME.name, sender_avatar:ME.avatar,
-    content:text
+    content:text,
+    reply_to_id:_replyTo?.id||null,
+    reply_to_sender:_replyTo?.sender||null,
+    reply_to_text:_replyTo?.text||null,
   };
+  // Clear reply before sending
+  if(_replyTo) cancelReply();
 
   // Insert first → get real UUID back → then render with real id
   const {data:inserted, error}=await SB.from('messages')
@@ -2784,15 +2853,22 @@ function showMsgMenu(e, m, msgEl, isSelf){
   document.body.appendChild(menu);
 
   const items=[];
-  // React always available
+  // Reply — always available for text messages
+  if(!m.msg_type||m.msg_type==='text'){
+    items.push({icon:'↩',label:'Reply',fn:()=>{ closeMsgMenu(); startReply(m); }});
+  }
+  // Forward — always available
+  items.push({icon:'↪',label:'Forward',fn:()=>{ closeMsgMenu(); forwardMsg(m); }});
+  // React
+  items.push({sep:true});
   items.push({icon:'😊',label:'React',fn:()=>{ closeMsgMenu(); showReactionPicker(e,m.id,msgEl); }});
 
   if(isSelf && m.id && !m.id.startsWith('tmp-')){
     if(!m.msg_type||m.msg_type==='text'){
       items.push({sep:true});
-      items.push({icon:'✏️',label:'Edit message',fn:()=>{ closeMsgMenu(); startEditMsg(m,msgEl); }});
+      items.push({icon:'✏️',label:'Edit',fn:()=>{ closeMsgMenu(); startEditMsg(m,msgEl); }});
     }
-    items.push({icon:'🗑',label:'Delete message',fn:()=>{ closeMsgMenu(); deleteMsg(m,msgEl); },danger:true});
+    items.push({icon:'🗑',label:'Delete',fn:()=>{ closeMsgMenu(); deleteMsg(m,msgEl); },danger:true});
   }
 
   items.forEach(it=>{
@@ -2907,6 +2983,103 @@ async function deleteMsg(m, msgEl){
   msgEl.style.opacity='0';
   msgEl.style.transform='scale(.9)';
   setTimeout(()=>msgEl.remove(),220);
+}
+
+/* ═══════════════════════════════════════════════════════
+   REPLY & FORWARD
+═══════════════════════════════════════════════════════ */
+let _replyTo=null; // {id, sender_name, content}
+
+function startReply(m){
+  _replyTo={id:m.id, sender:m.sender_name||'Someone', text:m.content||''};
+  const bar=document.getElementById('reply-bar');
+  bar.classList.add('show');
+  document.getElementById('reply-bar-name').textContent=
+    m.sender_id===ME?.id ? 'You' : (m.sender_name||'Someone');
+  const preview=(m.content||'').slice(0,80)+(m.content?.length>80?'…':'');
+  document.getElementById('reply-bar-text').textContent=preview||'Voice message';
+  // Focus input
+  const ci=document.getElementById('ci');
+  if(ci){ ci.focus(); }
+}
+
+function cancelReply(){
+  _replyTo=null;
+  document.getElementById('reply-bar').classList.remove('show');
+}
+
+function scrollToMsg(msgId){
+  const el=document.querySelector(`[data-msg-id="${msgId}"]`);
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  // Flash highlight
+  el.style.transition='background .15s';
+  el.style.background='rgba(91,127,255,.18)';
+  setTimeout(()=>{ el.style.background=''; },800);
+}
+
+async function forwardMsg(m){
+  if(!m||!ME) return;
+  // Build list of groups user is in (excluding current)
+  const myGroups=Object.values(GROUPS).filter(g=>JOINED.has(g.id));
+  if(!myGroups.length){ showToast('⚠ Join a group first to forward',true); return; }
+
+  // Show forward picker overlay
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(0,0,16,.88);backdrop-filter:blur(14px);display:flex;align-items:flex-end;justify-content:center';
+
+  const box=document.createElement('div');
+  box.style.cssText='width:min(420px,100vw);background:#07071e;border:1px solid rgba(91,127,255,.2);border-radius:18px 18px 0 0;padding:20px;max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px';
+
+  const hd=document.createElement('div');
+  hd.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:4px';
+  hd.innerHTML=`<div style="font-family:var(--FD);font-size:11px;color:var(--acc);letter-spacing:.12em;text-transform:uppercase">↪ Forward to…</div>
+    <button onclick="this.closest('[style]').remove()" style="background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;line-height:1">×</button>`;
+  box.appendChild(hd);
+
+  // Preview of message being forwarded
+  const prev=document.createElement('div');
+  prev.style.cssText='padding:8px 10px;background:rgba(91,127,255,.06);border-left:2px solid var(--acc);border-radius:0 8px 8px 0;font-size:11px;color:var(--dim);margin-bottom:4px';
+  prev.textContent=(m.content||'Voice message').slice(0,100);
+  box.appendChild(prev);
+
+  myGroups.forEach(g=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.03);border:1px solid rgba(91,127,255,.1);transition:all .15s';
+    row.innerHTML=`<span style="font-size:20px">${g.emoji||'🪐'}</span>
+      <div style="flex:1">
+        <div style="font-size:12px;color:var(--txt);font-weight:500">${esc(g.name)}</div>
+        <div style="font-size:9px;color:var(--dim)">${g.member_count||1} members</div>
+      </div>
+      <span style="font-size:10px;color:var(--acc);font-family:var(--FD);letter-spacing:.06em">SEND</span>`;
+    row.onmouseover=()=>row.style.background='rgba(91,127,255,.12)';
+    row.onmouseout=()=>row.style.background='rgba(255,255,255,.03)';
+    row.onclick=async()=>{
+      overlay.remove();
+      // Send forwarded message to target group
+      const fwdData={
+        group_id:g.id, sender_id:ME.id,
+        sender_name:ME.name, sender_avatar:ME.avatar,
+        content:m.content, msg_type:m.msg_type||'text',
+        voice_duration:m.voice_duration||0,
+        is_forwarded:true,
+        reply_to_id:null, reply_to_sender:null, reply_to_text:null
+      };
+      const {error}=await SB.from('messages').insert(fwdData);
+      if(error){ showToast('⚠ Forward failed',true); return; }
+      // If forwarding to current group, append it
+      if(g.id===_chatId){
+        const {data:ins}=await SB.from('messages').select('*').eq('group_id',g.id).order('created_at',{ascending:false}).limit(1).single();
+        if(ins) appendMessage(ins,true);
+      }
+      showToast(`↪ Forwarded to ${g.name}`);
+    };
+    box.appendChild(row);
+  });
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  overlay.onclick=e=>{ if(e.target===overlay) overlay.remove(); };
 }
 
 function onTyping(){
