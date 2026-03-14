@@ -1306,26 +1306,56 @@ button,input,[role=button]{touch-action:manipulation}
 
 <!-- DM PANEL -->
 <div id="dm-panel">
+  <!-- Header -->
   <div class="ph">
-    <div class="ph-ico" id="dm-ico">💬</div>
+    <div class="ph-ico" id="dm-ico" style="font-size:28px">🧑</div>
     <div style="flex:1">
       <div class="ph-nm" id="dm-nm">Direct Message</div>
-      <div class="ph-sb" id="dm-sb">Private conversation</div>
+      <div class="ph-sb" id="dm-sb">🔒 Private · only you two can see this</div>
     </div>
-    <button class="ph-x" onclick="closeDM()">×</button>
+    <div class="ph-actions">
+      <button class="ph-x" onclick="closeDM()">×</button>
+    </div>
   </div>
+  <!-- Info bar -->
   <div class="chat-info-bar">
     <span class="lv">🔴 LIVE</span>
-    <span style="color:var(--grn)">End-to-end private</span>
+    <span id="dm-status" style="color:var(--dim);font-size:9px">Private conversation</span>
+    <div style="flex:1"></div>
+    <span style="font-size:8px;color:rgba(52,211,153,.6);background:rgba(52,211,153,.06);
+      border:1px solid rgba(52,211,153,.15);border-radius:5px;padding:2px 7px;
+      font-family:var(--FD);letter-spacing:.06em">🔒 PRIVATE</span>
   </div>
+  <!-- Messages -->
   <div id="dm-msgs"></div>
+  <div class="typing-bar" id="dm-typing-bar"></div>
+  <!-- Reply bar for DMs -->
+  <div id="dm-reply-bar" style="display:none;padding:8px 12px;
+    background:rgba(91,127,255,.06);border-top:1px solid rgba(91,127,255,.12);
+    border-left:3px solid var(--acc);align-items:center;gap:8px">
+    <div style="flex:1;min-width:0">
+      <div id="dm-reply-name" style="font-size:9px;font-weight:600;color:var(--acc);
+        margin-bottom:1px;font-family:var(--FD);letter-spacing:.04em">—</div>
+      <div id="dm-reply-text" style="font-size:11px;color:var(--dim);white-space:nowrap;
+        overflow:hidden;text-overflow:ellipsis">—</div>
+    </div>
+    <button onclick="cancelDMReply()" style="width:20px;height:20px;border-radius:50%;
+      background:rgba(255,255,255,.06);border:1px solid var(--bdr);color:var(--dim);
+      font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+  </div>
+  <!-- Input -->
   <div class="cin">
+    <input type="file" id="dm-file-input" style="display:none" onchange="sendDMFile(this)"/>
     <div class="cinrow">
-      <input id="dm-ci" placeholder="Direct message…" autocomplete="off" maxlength="2000"/>
+      <button class="file-btn" onclick="document.getElementById('dm-file-input').click()" title="Send file">📎</button>
+      <button class="voice-btn" id="dm-voice-btn" onclick="toggleDMRecording()" title="Voice note">🎙</button>
+      <input id="dm-ci" placeholder="Message…" autocomplete="off" maxlength="2000"/>
+      <button class="add-reaction" onclick="toggleDMEmojiBar()" title="Emoji">😊</button>
       <button id="dm-send">
         <svg viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
       </button>
     </div>
+    <div id="dm-emoji-bar" style="display:none;flex-direction:column"></div>
   </div>
 </div>
 
@@ -3103,26 +3133,37 @@ function showTyping(name){
    DM PANEL
 ═══════════════════════════════════════════════════════ */
 let _dmUser=null;
+let _dmReplyTo=null;
 
+// Open DM — user does NOT need to be online, works by userId alone
 async function openDM(user){
+  if(!user||!user.userId){ showToast('⚠ Cannot open DM',true); return; }
   _dmUser=user;
   const rid=[ME.id,user.userId].sort().join('_');
+
+  // Header — show avatar prominently, keep name minimal for privacy
   document.getElementById('dm-ico').textContent=user.avatar||'🧑';
-  document.getElementById('dm-nm').textContent=user.name;
-  document.getElementById('dm-sb').textContent='Private conversation';
+  document.getElementById('dm-nm').textContent='Private Chat';
+  document.getElementById('dm-sb').textContent='🔒 Private · only you two can see this';
+
   closeInfo(); closeChat();
+  // Don't force online panel to close — just open DM
+  if(onlinePanelOpen) toggleOnline();
   document.getElementById('dm-panel').classList.add('open');
   document.body.classList.add('panel-open');
-  toggleOnline();
 
   const msgs=document.getElementById('dm-msgs');
   msgs.innerHTML='<div class="empty-chat"><span>⏳</span>Loading…</div>';
   const history=await loadDMs(rid);
   msgs.innerHTML='';
   if(!history.length){
-    msgs.innerHTML=`<div class="empty-chat"><span>👋</span>Start a private conversation with ${user.name}</div>`;
+    msgs.innerHTML=`<div class="empty-chat">
+      <span style="font-size:36px">${user.avatar||'🧑'}</span>
+      <div style="margin-top:8px;font-size:12px;color:var(--dim)">Start a private conversation</div>
+      <div style="font-size:9px;color:rgba(91,127,255,.4);margin-top:4px">Messages are private between you two</div>
+    </div>`;
   } else {
-    const sep=document.createElement('div');sep.className='dsep';sep.textContent='Direct messages';
+    const sep=document.createElement('div');sep.className='dsep';sep.textContent='Private messages';
     msgs.appendChild(sep);
     history.forEach(m=>appendDMMessage(m,false));
   }
@@ -3133,8 +3174,22 @@ async function openDM(user){
 
 function closeDM(){
   document.getElementById('dm-panel').classList.remove('open');
-  unsubscribeDM(); _dmUser=null;
+  unsubscribeDM(); _dmUser=null; _dmReplyTo=null;
+  document.getElementById('dm-reply-bar').style.display='none';
   checkPanelOpen();
+}
+
+// DM Reply
+function startDMReply(m){
+  _dmReplyTo={id:m.id, sender:m.sender_id===ME.id?'You':(m.sender_name||'Them'), text:m.content||''};
+  document.getElementById('dm-reply-bar').style.display='flex';
+  document.getElementById('dm-reply-name').textContent=_dmReplyTo.sender;
+  document.getElementById('dm-reply-text').textContent=(_dmReplyTo.text).slice(0,80);
+  document.getElementById('dm-ci').focus();
+}
+function cancelDMReply(){
+  _dmReplyTo=null;
+  document.getElementById('dm-reply-bar').style.display='none';
 }
 
 function appendDMMessage(m,isNew){
@@ -3144,13 +3199,242 @@ function appendDMMessage(m,isNew){
   const t=new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   const d=document.createElement('div');
   d.className=`msg${isSelf?' me':''}${isNew?' msg-new':''}`;
-  d.innerHTML=`<div class="mav2">${m.sender_avatar||'🧑'}</div>
-    <div class="mbody">
-      <div class="mmeta">${isSelf?'You':m.sender_name} · ${t}</div>
-      <div class="mtext">${esc(m.content)}</div>
+  d.dataset.msgId=m.id||'';
+
+  // Content
+  let contentHtml='';
+  if(m.msg_type==='voice') contentHtml=renderVoiceMsg(m);
+  else if(m.msg_type==='file') contentHtml=renderFileMsg(m);
+  else contentHtml=`<div class="mtext">${esc(m.content)}</div>`;
+
+  // Reply quote
+  let replyHtml='';
+  if(m.reply_to_id && m.reply_to_sender){
+    const snip=esc((m.reply_to_text||'').slice(0,60));
+    replyHtml=`<div class="msg-reply-quote">
+      <div class="reply-quote-name">${esc(m.reply_to_sender)}</div>
+      <div class="reply-quote-text">${snip}</div>
     </div>`;
+  }
+
+  d.innerHTML=`<div class="mav2">${m.sender_avatar||'🧑'}</div>
+    <div class="mbody" style="position:relative">
+      <div class="mmeta">${isSelf?'You':'Them'} · ${t}</div>
+      ${replyHtml}${contentHtml}
+      <div class="msg-reactions" id="dm-reactions-${m.id||''}"></div>
+      <div class="msg-time">${t}</div>
+    </div>`;
+
+  // Context menu on right-click/long-press
+  const body=d.querySelector('.mbody');
+  body.addEventListener('contextmenu',e=>{e.preventDefault();showDMMsgMenu(e,m,d,isSelf);});
+  let lpt2;
+  body.addEventListener('touchstart',()=>{lpt2=setTimeout(()=>{
+    const r=body.getBoundingClientRect();
+    showDMMsgMenu({clientX:r.left+r.width/2,clientY:r.top},m,d,isSelf);
+  },500);},{passive:true});
+  body.addEventListener('touchend',()=>clearTimeout(lpt2),{passive:true});
+
   msgs.appendChild(d);
   msgs.scrollTop=msgs.scrollHeight;
+  if(!isSelf&&isNew) triggerNotification({...m,group_id:'dm'});
+}
+
+// DM context menu
+function showDMMsgMenu(e,m,msgEl,isSelf){
+  closeMsgMenu();
+  const menu=document.createElement('div');
+  menu.className='msg-menu';
+  menu.style.cssText='left:-9999px;top:-9999px';
+  document.body.appendChild(menu);
+
+  const items=[];
+  if(!m.msg_type||m.msg_type==='text'){
+    items.push({icon:'↩',label:'Reply',fn:()=>{closeMsgMenu();startDMReply(m);}});
+  }
+  items.push({icon:'😊',label:'React',fn:()=>{closeMsgMenu();showDMReactionPicker(e,m.id,msgEl);}});
+  if(isSelf&&m.id&&!m.id.startsWith('tmp-')){
+    items.push({sep:true});
+    if(!m.msg_type||m.msg_type==='text'){
+      items.push({icon:'✏️',label:'Edit',fn:()=>{closeMsgMenu();startDMEdit(m,msgEl);}});
+    }
+    items.push({icon:'🗑',label:'Delete',fn:()=>{closeMsgMenu();deleteDMMsg(m,msgEl);},danger:true});
+  }
+  items.forEach(it=>{
+    if(it.sep){const s=document.createElement('div');s.className='msg-menu-sep';menu.appendChild(s);return;}
+    const d2=document.createElement('div');
+    d2.className='msg-menu-item'+(it.danger?' danger':'');
+    d2.innerHTML=`<span style="font-size:14px">${it.icon}</span>${it.label}`;
+    d2.onclick=it.fn; menu.appendChild(d2);
+  });
+  const mh=menu.offsetHeight||100,mw=menu.offsetWidth||150;
+  const top=window.innerHeight-e.clientY>mh+16?e.clientY+4:e.clientY-mh-4;
+  const left=window.innerWidth-e.clientX>mw+16?e.clientX+4:e.clientX-mw-4;
+  menu.style.cssText=`left:${Math.max(6,left)}px;top:${Math.max(56,top)}px`;
+  _activeMenu=menu;
+  setTimeout(()=>document.addEventListener('click',closeMsgMenu,{once:true}),50);
+}
+
+function showDMReactionPicker(e,msgId,msgEl){
+  closeReactionPicker();
+  if(!msgId) return;
+  const p=document.createElement('div');
+  p.className='emoji-picker';
+  p.style.cssText=`top:${e.clientY-60}px;left:${Math.min(e.clientX,window.innerWidth-290)}px`;
+  Object.values(ALL_EMOJI_CATEGORIES).forEach(cat=>{
+    cat.forEach(em=>{
+      const b=document.createElement('button');
+      b.className='ep-em';b.textContent=em;
+      b.onclick=()=>{addDMReaction(msgId,em,msgEl);closeReactionPicker();};
+      p.appendChild(b);
+    });
+  });
+  document.body.appendChild(p);
+  _reactionPicker=p;
+  setTimeout(()=>document.addEventListener('click',closeReactionPicker,{once:true}),50);
+}
+
+let _dmReactions={};
+function addDMReaction(msgId,emoji,msgEl){
+  if(!_dmReactions[msgId]) _dmReactions[msgId]={};
+  _dmReactions[msgId][emoji]=(_dmReactions[msgId][emoji]||0)+1;
+  const row=msgEl?.querySelector(`#dm-reactions-${msgId}`);
+  if(!row) return;
+  row.innerHTML='';
+  Object.entries(_dmReactions[msgId]).forEach(([em,cnt])=>{
+    if(!cnt) return;
+    const b=document.createElement('button');
+    b.className='reaction-btn';
+    b.innerHTML=`${em}<span class="reaction-count">${cnt}</span>`;
+    b.onclick=()=>addDMReaction(msgId,em,msgEl);
+    row.appendChild(b);
+  });
+}
+
+function startDMEdit(m,msgEl){
+  const mtext=msgEl.querySelector('.mtext'); if(!mtext) return;
+  mtext.style.display='none';
+  const ta=document.createElement('textarea');
+  ta.className='msg-edit-input'; ta.value=m.content;
+  ta.rows=Math.max(1,Math.ceil(m.content.length/40));
+  mtext.parentNode.insertBefore(ta,mtext.nextSibling);
+  const btns=document.createElement('div');
+  btns.style.cssText='display:flex;gap:5px;margin-top:5px';
+  btns.innerHTML=`<button onclick="saveDMEdit()" style="flex:1;padding:5px 10px;border-radius:7px;background:var(--acc);border:none;color:#fff;font-size:11px;cursor:pointer">Save</button>
+    <button onclick="cancelDMEdit()" style="flex:1;padding:5px 10px;border-radius:7px;background:rgba(255,255,255,.07);border:1px solid var(--bdr);color:var(--dim);font-size:11px;cursor:pointer">Cancel</button>`;
+  ta.parentNode.insertBefore(btns,ta.nextSibling);
+  msgEl._dmEditData={m,mtext,ta,btns};
+  ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();saveDMEdit();}if(e.key==='Escape')cancelDMEdit();});
+  ta.focus(); ta.select();
+}
+async function saveDMEdit(){
+  const msgEl=[...document.querySelectorAll('#dm-msgs [data-msg-id]')].find(el=>el._dmEditData);
+  if(!msgEl||!msgEl._dmEditData) return;
+  const {m,mtext,ta,btns}=msgEl._dmEditData;
+  const newText=ta.value.trim();
+  if(!newText){showToast('⚠ Message cannot be empty',true);return;}
+  const {error}=await SB.from('direct_messages').update({content:newText}).eq('id',m.id).eq('sender_id',ME.id);
+  if(error){showToast('⚠ Edit failed',true);return;}
+  m.content=newText; mtext.innerHTML=esc(newText); mtext.style.display='';
+  ta.remove(); btns.remove(); delete msgEl._dmEditData;
+  showToast('✓ Message edited');
+}
+function cancelDMEdit(){
+  const msgEl=[...document.querySelectorAll('#dm-msgs [data-msg-id]')].find(el=>el._dmEditData);
+  if(!msgEl||!msgEl._dmEditData) return;
+  const {mtext,ta,btns}=msgEl._dmEditData;
+  mtext.style.display=''; ta.remove(); btns.remove(); delete msgEl._dmEditData;
+}
+async function deleteDMMsg(m,msgEl){
+  const confirmed=await showConfirmDialog('Delete message?','This will remove it permanently.','🗑 Delete','Cancel');
+  if(!confirmed) return;
+  const {error}=await SB.from('direct_messages').delete().eq('id',m.id).eq('sender_id',ME.id);
+  if(error){showToast('⚠ Delete failed',true);return;}
+  msgEl.style.transition='all .22s'; msgEl.style.opacity='0'; msgEl.style.transform='scale(.9)';
+  setTimeout(()=>msgEl.remove(),220);
+}
+
+// DM emoji bar
+function toggleDMEmojiBar(){
+  const bar=document.getElementById('dm-emoji-bar');
+  if(bar.style.display==='none'||!bar.style.display){
+    renderFullEmojiPicker(bar);
+    bar.style.display='flex';
+    bar.style.flexDirection='column';
+  } else { bar.style.display='none'; }
+}
+
+// DM file sending
+async function sendDMFile(input){
+  const file=input.files[0]; if(!file||!_dmUser||!ME) return;
+  input.value='';
+  if(file.size>5*1024*1024){ showToast('⚠ Max file size is 5MB',true); return; }
+  showToast('📎 Sending…');
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    const meta=JSON.stringify({name:file.name,
+      size:file.size>1024*1024?(file.size/1024/1024).toFixed(1)+'MB':(file.size/1024).toFixed(0)+'KB',
+      url:reader.result});
+    const rid=[ME.id,_dmUser.userId].sort().join('_');
+    const msgData={room_id:rid,sender_id:ME.id,sender_name:ME.name,sender_avatar:ME.avatar,
+      recipient_id:_dmUser.userId,content:meta,msg_type:'file'};
+    const {data:ins,error}=await SB.from('direct_messages').insert(msgData).select().single();
+    if(error){showToast('⚠ File send failed',true);return;}
+    appendDMMessage({...ins},true);
+    showToast('✓ File sent!');
+  };
+  reader.readAsDataURL(file);
+}
+
+// DM voice recording (separate from group voice, same logic)
+let _dmMediaRecorder=null, _dmAudioChunks=[], _dmRecStart=null, _dmRecTimer=null;
+let _dmVoiceBlob=null, _dmVoiceDuration=0;
+
+async function toggleDMRecording(){
+  if(_dmMediaRecorder&&_dmMediaRecorder.state==='recording'){
+    _dmMediaRecorder.stop(); return;
+  }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    _dmAudioChunks=[];
+    _dmMediaRecorder=new MediaRecorder(stream);
+    _dmMediaRecorder.ondataavailable=e=>{if(e.data.size>0)_dmAudioChunks.push(e.data);};
+    _dmMediaRecorder.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      clearInterval(_dmRecTimer);
+      _dmVoiceDuration=Math.max(1,Math.round((Date.now()-_dmRecStart)/1000));
+      _dmVoiceBlob=new Blob(_dmAudioChunks,{type:'audio/webm;codecs=opus'});
+      confirmSendDMVoice();
+    };
+    _dmMediaRecorder.start(100); _dmRecStart=Date.now();
+    const btn=document.getElementById('dm-voice-btn');
+    btn.classList.add('recording'); btn.textContent='⏹';
+    let s=0;
+    _dmRecTimer=setInterval(()=>{
+      s++;btn.title=`Recording ${s}s`;
+      if(s>=120)_dmMediaRecorder.stop();
+    },1000);
+  }catch(e){showToast('⚠ Microphone access denied',true);}
+}
+
+async function confirmSendDMVoice(){
+  if(!_dmVoiceBlob||!_dmUser||!ME) return;
+  const btn=document.getElementById('dm-voice-btn');
+  btn.classList.remove('recording'); btn.textContent='🎙';
+  const blob=_dmVoiceBlob, dur=_dmVoiceDuration;
+  _dmVoiceBlob=null; _dmVoiceDuration=0;
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    const b64=reader.result;
+    const rid=[ME.id,_dmUser.userId].sort().join('_');
+    const msgData={room_id:rid,sender_id:ME.id,sender_name:ME.name,sender_avatar:ME.avatar,
+      recipient_id:_dmUser.userId,content:b64,msg_type:'voice',voice_duration:dur};
+    const {data:ins,error}=await SB.from('direct_messages').insert(msgData).select().single();
+    if(error){showToast('⚠ Voice send failed',true);return;}
+    appendDMMessage({...ins},true);
+    showToast('🎙 Voice message sent!');
+  };
+  reader.readAsDataURL(blob);
 }
 
 async function sendDM(){
@@ -3162,10 +3446,15 @@ async function sendDM(){
   const msgData={
     room_id:rid, sender_id:ME.id,
     sender_name:ME.name, sender_avatar:ME.avatar,
-    recipient_id:_dmUser.userId, content:text
+    recipient_id:_dmUser.userId, content:text,
+    reply_to_id:_dmReplyTo?.id||null,
+    reply_to_sender:_dmReplyTo?.sender||null,
+    reply_to_text:_dmReplyTo?.text||null,
   };
-  appendDMMessage({...msgData,created_at:new Date().toISOString()},true);
-  await SB.from('direct_messages').insert(msgData);
+  if(_dmReplyTo) cancelDMReply();
+  const {data:ins,error}=await SB.from('direct_messages').insert(msgData).select().single();
+  if(error){showToast('⚠ Send failed',true);return;}
+  appendDMMessage({...ins},true);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -4360,6 +4649,12 @@ document.getElementById('dm-ci').addEventListener('focus',()=>{
 });
 document.getElementById('dm-send').onclick=sendDM;
 document.getElementById('dm-ci').onkeydown=e=>{ if(e.key==='Enter')sendDM(); };
+document.getElementById('dm-ci').addEventListener('focus',()=>{
+  setTimeout(()=>{
+    const msgs=document.getElementById('dm-msgs');
+    if(msgs) msgs.scrollTop=msgs.scrollHeight;
+  },350);
+});
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){ closeChat(); closeInfo(); closeDM(); closeModal(); closeJoinCode(); closeProfile(); closeGrpSettings(); closeMsgMenu(); cancelEditMsg(); }
 });
