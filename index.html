@@ -468,6 +468,108 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 .kick-btn:hover{background:rgba(248,113,113,.3);border-color:#f87171}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:#141430;border-radius:2px}
+
+/* ── EMOJI REACTIONS ── */
+.msg-reactions{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.reaction-btn{padding:2px 7px;border-radius:20px;font-size:11px;cursor:pointer;
+  background:rgba(255,255,255,.06);border:1px solid var(--bdr);transition:all .15s;
+  display:flex;align-items:center;gap:3px;color:var(--txt)}
+.reaction-btn:hover{background:rgba(91,127,255,.18);border-color:var(--acc)}
+.reaction-btn.mine{background:rgba(91,127,255,.22);border-color:var(--acc)}
+.reaction-count{font-size:9px;color:var(--dim)}
+.add-reaction{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.05);
+  border:1px solid var(--bdr);font-size:11px;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.add-reaction:hover{background:rgba(91,127,255,.18)}
+.emoji-picker{position:absolute;background:#0a0a22;border:1px solid var(--bdr);
+  border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:4px;
+  z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.8);width:200px}
+.ep-em{width:28px;height:28px;border-radius:7px;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;transition:background .12s}
+.ep-em:hover{background:rgba(91,127,255,.2)}
+
+/* ── VOICE NOTE ── */
+.voice-btn{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.06);
+  border:1px solid var(--bdr);color:var(--txt);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.voice-btn:hover{background:rgba(91,127,255,.2);border-color:var(--acc)}
+.voice-btn.recording{background:rgba(248,113,113,.2);border-color:var(--red);
+  color:var(--red);animation:pulse-rec .8s ease-in-out infinite}
+@keyframes pulse-rec{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.voice-msg{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);min-width:160px}
+.voice-play{width:28px;height:28px;border-radius:50%;background:var(--acc);border:none;
+  cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .15s}
+.voice-play:hover{background:#7b9bff}
+.voice-duration{font-size:10px;color:var(--dim);min-width:32px}
+.voice-wave{flex:1;height:20px;position:relative;overflow:hidden}
+.voice-bar{position:absolute;bottom:0;width:3px;border-radius:2px;background:var(--acc);opacity:.6}
+
+/* ── FILE ATTACHMENT ── */
+.file-btn{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.06);
+  border:1px solid var(--bdr);color:var(--txt);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.file-btn:hover{background:rgba(91,127,255,.2);border-color:var(--acc)}
+.file-msg{display:flex;align-items:center;gap:8px;padding:8px 12px;
+  border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--bdr)}
+.file-icon{font-size:20px;flex-shrink:0}
+.file-name{font-size:11px;color:var(--txt);flex:1;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.file-size{font-size:9px;color:var(--dim)}
+.file-dl{padding:4px 10px;border-radius:6px;background:var(--acc);border:none;
+  color:#fff;font-size:9px;cursor:pointer;transition:all .15s;text-decoration:none;
+  display:inline-block}
+.file-dl:hover{background:#7b9bff}
+
+/* ── GROUP SETTINGS MODAL ── */
+#grp-settings-modal{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.82);
+  backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .28s}
+#grp-settings-modal.on{opacity:1;pointer-events:all}
+.gs-box{width:380px;max-width:calc(100vw - 20px);background:#030312;
+  border:1px solid var(--bdr);border-radius:18px;padding:0;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.95);display:flex;flex-direction:column}
+.gs-hd{padding:18px 20px 14px;border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between}
+.gs-title{font-family:var(--FD);font-size:13px;font-weight:700;color:#fff;letter-spacing:.06em}
+.gs-x{width:25px;height:25px;border-radius:50%;background:rgba(255,255,255,.05);
+  border:1px solid var(--bdr);color:var(--dim);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .18s}
+.gs-x:hover{color:#fff;background:rgba(255,255,255,.1)}
+.gs-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:70vh}
+.gs-label{font-size:8px;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.14em;margin-bottom:3px;font-family:var(--FD)}
+.gs-inp{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--bdr);
+  border-radius:9px;padding:10px 13px;color:#fff;font-family:var(--FB);
+  font-size:13px;outline:none;transition:border-color .18s}
+.gs-inp:focus{border-color:rgba(91,127,255,.5)}
+.gs-emoji-row{display:flex;flex-wrap:wrap;gap:5px}
+.gs-emoji{width:34px;height:34px;border-radius:8px;font-size:18px;
+  background:rgba(255,255,255,.04);border:2px solid transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.gs-emoji:hover{background:rgba(255,255,255,.08)}
+.gs-emoji.sel{background:rgba(91,127,255,.18);border-color:var(--acc)}
+.gs-save{width:100%;padding:12px;border:none;border-radius:10px;
+  background:var(--acc);color:#fff;font-family:var(--FD);font-size:11px;
+  font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .18s;margin-top:4px}
+.gs-save:hover{background:#7b9bff}
+.gs-danger{padding:12px 20px;border-top:1px solid var(--bdr)}
+.gs-delete{width:100%;padding:11px;border-radius:10px;background:rgba(248,113,113,.1);
+  border:1px solid rgba(248,113,113,.3);color:var(--red);font-family:var(--FB);
+  font-size:12px;font-weight:600;cursor:pointer;transition:all .18s}
+.gs-delete:hover{background:rgba(248,113,113,.25)}
+
+/* ── NOTIFICATION BADGE ── */
+.notif-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;
+  border-radius:50%;background:var(--red);border:2px solid #000;display:none}
+.notif-dot.show{display:block}
+#notif-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;
+  border-radius:8px;background:var(--red);color:#fff;font-size:8px;font-weight:700;
+  display:none;align-items:center;justify-content:center;padding:0 3px;
+  border:2px solid #000008}
+#notif-badge.show{display:flex}
 </style>
 </head>
 <body>
@@ -516,8 +618,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
   <button class="tbtn" onclick="openModal('group')" id="btn-grp">🪐 Create Group</button>
   <button class="tbtn pri" onclick="openModal('system')" id="btn-sys">☀️ New System</button>
   <div class="vsep"></div>
-  <button class="tbtn" onclick="toggleOnline()" style="gap:4px">
-    <div class="conn-dot online" style="margin:0"></div> Online
+  <button class="tbtn" onclick="toggleOnline()" style="gap:4px;position:relative">
+    <div class="conn-dot online" style="margin:0"></div>
+    <span id="online-count-label">Online</span>
+    <span id="notif-badge">0</span>
   </button>
   <div class="tb-av" id="tb-av" onclick="openProfile()" title="Edit profile" style="cursor:pointer">🧑</div>
   <div class="tb-nm" id="tb-nm" onclick="openProfile()" style="cursor:pointer">—</div>
@@ -595,6 +699,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
       <div class="ph-nm" id="c-nm">—</div>
       <div class="ph-sb" id="c-sb">—</div>
     </div>
+    <button id="c-settings-btn" style="display:none;width:25px;height:25px;border-radius:50%;
+      background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--dim);
+      font-size:13px;cursor:pointer;align-items:center;justify-content:center;
+      transition:all .18s;margin-right:4px" onclick="openGrpSettings()" title="Group settings">⚙</button>
     <button class="ph-x" onclick="closeChat()">×</button>
   </div>
   <div class="chat-info-bar">
@@ -609,11 +717,46 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
   <div id="msgs"></div>
   <div class="typing-bar" id="typing-bar"></div>
   <div class="cin">
+    <input type="file" id="file-input" style="display:none" onchange="sendFile(this)"/>
     <div class="cinrow">
+      <button class="file-btn" onclick="document.getElementById('file-input').click()" title="Send file">📎</button>
+      <button class="voice-btn" id="voice-btn" onclick="toggleRecording()" title="Voice note">🎙</button>
       <input id="ci" placeholder="Message…" autocomplete="off" maxlength="2000"/>
+      <button class="add-reaction" onclick="toggleEmojiBar()" title="Emoji">😊</button>
       <button id="csend">
         <svg viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
       </button>
+    </div>
+    <div id="emoji-bar" style="display:none;flex-wrap:wrap;gap:4px;padding:6px 4px 2px">
+      <!-- quick emoji insert for typing -->
+    </div>
+  </div>
+</div>
+
+<!-- GROUP SETTINGS MODAL -->
+<div id="grp-settings-modal">
+  <div class="gs-box">
+    <div class="gs-hd">
+      <div class="gs-title">⚙ Group Settings</div>
+      <div class="gs-x" onclick="closeGrpSettings()">×</div>
+    </div>
+    <div class="gs-body">
+      <div>
+        <div class="gs-label">Group Name</div>
+        <input class="gs-inp" id="gs-name" placeholder="Group name…" maxlength="32"/>
+      </div>
+      <div>
+        <div class="gs-label">Description</div>
+        <input class="gs-inp" id="gs-desc" placeholder="Description…" maxlength="80"/>
+      </div>
+      <div>
+        <div class="gs-label">Group Icon</div>
+        <div class="gs-emoji-row" id="gs-emoji-row"></div>
+      </div>
+      <button class="gs-save" onclick="saveGrpSettings()">Save Changes →</button>
+    </div>
+    <div class="gs-danger">
+      <button class="gs-delete" onclick="deleteGroup()">🗑 Delete Group Permanently</button>
     </div>
   </div>
 </div>
@@ -1303,14 +1446,21 @@ function subscribeToChat(groupId){
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',
       filter:`group_id=eq.${groupId}`},payload=>{
       const m=payload.new;
-      if(m.sender_id!==ME.id){ // don't duplicate own msgs
-        appendMessage(m,false);
+      if(m.sender_id!==ME.id){
+        appendMessage(m,true);
       }
     })
     .on('broadcast',{event:'typing'},payload=>{
       if(payload.payload.userId!==ME.id){
         showTyping(payload.payload.name);
       }
+    })
+    .on('broadcast',{event:'reaction'},payload=>{
+      const {msgId,emoji}=payload.payload;
+      if(!_reactions[msgId]) _reactions[msgId]={};
+      _reactions[msgId][emoji]=(_reactions[msgId][emoji]||0)+1;
+      const msgEl=document.querySelector(`[data-msg-id="${msgId}"]`);
+      if(msgEl) renderReactions(msgId,msgEl);
     })
     .subscribe();
   realtimeSubs.push(sub);
@@ -1387,20 +1537,35 @@ function startPresence(){
 function renderOnlineList(){
   const list=document.getElementById('op-list');
   const users=Object.values(ONLINE);
-  if(!users.length){
+  const cnt=users.length;
+  // Update topbar count
+  const lbl=document.getElementById('online-count-label');
+  if(lbl) lbl.textContent = cnt>0?`${cnt+1} online`:'Online';
+  if(!cnt){
     list.innerHTML='<div class="op-empty">No one else online yet.<br>Share your invite code!</div>';
     return;
   }
-  list.innerHTML='';
+  list.innerHTML=`<div style="font-size:10px;color:var(--dim);padding:8px 10px 4px">
+    <strong style="color:var(--grn)">${cnt+1}</strong> people active right now
+  </div>`;
+  // Show avatars without revealing names for privacy
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px;padding:6px 10px';
   users.forEach(u=>{
-    const d=document.createElement('div');
-    d.className='ou-item';
-    d.innerHTML=`<div class="ou-av">${u.avatar||'🧑'}</div>
-      <div class="ou-name">${u.name}</div>
-      <div class="ou-dm">DM</div>`;
-    d.onclick=()=>openDM(u);
-    list.appendChild(d);
+    const a=document.createElement('div');
+    a.className='ou-av';
+    a.title='Click to DM';
+    a.textContent=u.avatar||'🧑';
+    a.style.cursor='pointer';
+    a.onclick=()=>openDM(u);
+    wrap.appendChild(a);
   });
+  list.appendChild(wrap);
+  // DM section
+  const dm=document.createElement('div');
+  dm.style.cssText='padding:8px 10px;font-size:9px;color:var(--dim);border-top:1px solid var(--bdr);margin-top:6px';
+  dm.textContent='Click an avatar to send a private message';
+  list.appendChild(dm);
 }
 
 let onlinePanelOpen=false;
@@ -1575,6 +1740,9 @@ async function openChat(id){
   document.getElementById('c-members-count').textContent=`${g.member_count||1} members`;
   const badge = document.getElementById('c-expiry-badge');
   badge.style.display = g.is_public ? 'inline' : 'none';
+  // Show settings gear only for group admin
+  const settBtn=document.getElementById('c-settings-btn');
+  if(settBtn) settBtn.style.display = (ME && g.created_by===ME.id)?'flex':'none';
 
   closeInfo(); closeDM();
   document.getElementById('chat-panel').classList.add('open');
@@ -1615,13 +1783,68 @@ function appendMessage(m, isNew){
   const t=new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   const d=document.createElement('div');
   d.className=`msg${isSelf?' me':''}${isNew?' msg-new':''}`;
+  d.dataset.msgId=m.id||'';
+
+  // Determine message content type
+  let contentHtml='';
+  if(m.msg_type==='voice'){
+    contentHtml=renderVoiceMsg(m);
+  } else if(m.msg_type==='file'){
+    contentHtml=renderFileMsg(m);
+  } else {
+    contentHtml=`<div class="mtext">${esc(m.content)}</div>`;
+  }
+
   d.innerHTML=`<div class="mav2">${m.sender_avatar||'🧑'}</div>
-    <div class="mbody">
+    <div class="mbody" style="position:relative">
       <div class="mmeta">${isSelf?'You':m.sender_name} · ${t}</div>
-      <div class="mtext">${esc(m.content)}</div>
+      ${contentHtml}
+      <div class="msg-reactions" id="reactions-${m.id||''}"></div>
+      <div class="msg-time">${t}</div>
     </div>`;
+
+  // Long-press or right-click to react
+  const body=d.querySelector('.mbody');
+  body.addEventListener('contextmenu',e=>{e.preventDefault();showReactionPicker(e,m.id,d);});
+  let lpt; 
+  body.addEventListener('touchstart',()=>{lpt=setTimeout(()=>showReactionPickerTouch(m.id,d),500);},{passive:true});
+  body.addEventListener('touchend',()=>clearTimeout(lpt),{passive:true});
+
   msgs.appendChild(d);
   msgs.scrollTop=msgs.scrollHeight;
+
+  // Trigger notification if not self and window not focused
+  if(!isSelf && isNew) triggerNotification(m);
+}
+
+function renderVoiceMsg(m){
+  const dur=m.voice_duration||0;
+  const bars=Array.from({length:16},(_,i)=>{
+    const h=8+Math.floor(Math.random()*12);
+    return `<div class="voice-bar" style="left:${i*11}px;height:${h}px"></div>`;
+  }).join('');
+  return `<div class="voice-msg">
+    <button class="voice-play" onclick="playVoice('${m.content}',this)">▶</button>
+    <div class="voice-wave">${bars}</div>
+    <div class="voice-duration">${Math.floor(dur/60)}:${String(dur%60).padStart(2,'0')}</div>
+  </div>`;
+}
+
+function renderFileMsg(m){
+  let meta={name:'File',size:'',url:m.content};
+  try{meta=JSON.parse(m.content);}catch(e){}
+  const ext=(meta.name||'').split('.').pop().toLowerCase();
+  const icon=['jpg','jpeg','png','gif','webp'].includes(ext)?'🖼':
+    ['pdf'].includes(ext)?'📄':['mp4','mov','avi'].includes(ext)?'🎬':
+    ['mp3','wav','ogg'].includes(ext)?'🎵':'📎';
+  return `<div class="file-msg">
+    <div class="file-icon">${icon}</div>
+    <div style="flex:1;min-width:0">
+      <div class="file-name">${esc(meta.name||'File')}</div>
+      <div class="file-size">${meta.size||''}</div>
+    </div>
+    <a class="file-dl" href="${esc(meta.url)}" download="${esc(meta.name||'file')}" target="_blank">⬇</a>
+  </div>`;
 }
 
 let _typing=false, _typingTimer=null;
@@ -1976,6 +2199,299 @@ async function doCreate(){
 }
 
 /* ═══════════════════════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════════════════════ */
+let _notifCount=0;
+let _notifPerm=false;
+
+async function requestNotifPerm(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission==='granted'){ _notifPerm=true; return; }
+  if(Notification.permission!=='denied'){
+    const p=await Notification.requestPermission();
+    _notifPerm = p==='granted';
+  }
+}
+
+function triggerNotification(m){
+  // In-app badge
+  if(document.hidden){
+    _notifCount++;
+    const b=document.getElementById('notif-badge');
+    if(b){ b.textContent=_notifCount>9?'9+':_notifCount; b.classList.add('show'); }
+    document.title=`(${_notifCount}) COSMOS — Universe Messenger`;
+  }
+  // Browser push notification
+  if(_notifPerm && document.hidden){
+    const grp=GROUPS[m.group_id]||{};
+    try{
+      new Notification(`${m.sender_name} in ${grp.name||'COSMOS'}`,{
+        body: m.msg_type==='voice'?'🎙 Voice message':
+              m.msg_type==='file'?'📎 File attachment':m.content,
+        icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="%235b7fff"/><text y="21" x="8" font-size="18">🌌</text></svg>',
+        tag:'cosmos-msg'
+      });
+    }catch(e){}
+  }
+}
+
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden){
+    _notifCount=0;
+    const b=document.getElementById('notif-badge');
+    if(b) b.classList.remove('show');
+    document.title='COSMOS — Universe Messenger';
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   EMOJI REACTIONS
+═══════════════════════════════════════════════════════ */
+const REACT_EMOJIS=['👍','❤️','😂','😮','😢','🔥','🎉','👏','🚀','✨'];
+let _reactionPicker=null;
+
+function showReactionPicker(e, msgId, msgEl){
+  closeReactionPicker();
+  if(!msgId) return;
+  const p=document.createElement('div');
+  p.className='emoji-picker';
+  p.style.cssText=`top:${e.clientY-60}px;left:${Math.min(e.clientX,window.innerWidth-220)}px`;
+  REACT_EMOJIS.forEach(em=>{
+    const b=document.createElement('button');
+    b.className='ep-em'; b.textContent=em;
+    b.onclick=()=>{ addReaction(msgId,em,msgEl); closeReactionPicker(); };
+    p.appendChild(b);
+  });
+  document.body.appendChild(p);
+  _reactionPicker=p;
+  setTimeout(()=>document.addEventListener('click',closeReactionPicker,{once:true}),50);
+}
+
+function showReactionPickerTouch(msgId, msgEl){
+  if(!msgId) return;
+  const rect=msgEl.getBoundingClientRect();
+  showReactionPicker({clientY:rect.top,clientX:rect.left},msgId,msgEl);
+}
+
+function closeReactionPicker(){
+  _reactionPicker?.remove(); _reactionPicker=null;
+}
+
+let _reactions={}; // msgId -> {emoji: count}
+function addReaction(msgId, emoji, msgEl){
+  if(!msgId) return;
+  if(!_reactions[msgId]) _reactions[msgId]={};
+  _reactions[msgId][emoji]=(_reactions[msgId][emoji]||0)+1;
+  renderReactions(msgId, msgEl);
+  // Broadcast via realtime channel
+  if(_chatId){
+    SB.channel(`chat-${_chatId}`).send({
+      type:'broadcast',event:'reaction',
+      payload:{msgId,emoji,userId:ME.id}
+    });
+  }
+}
+
+function renderReactions(msgId, msgEl){
+  const row=msgEl?.querySelector(`#reactions-${msgId}`);
+  if(!row) return;
+  const reacts=_reactions[msgId]||{};
+  row.innerHTML='';
+  Object.entries(reacts).forEach(([em,cnt])=>{
+    if(!cnt) return;
+    const b=document.createElement('button');
+    b.className='reaction-btn';
+    b.innerHTML=`${em}<span class="reaction-count">${cnt}</span>`;
+    b.onclick=()=>addReaction(msgId,em,msgEl);
+    row.appendChild(b);
+  });
+}
+
+function toggleEmojiBar(){
+  const bar=document.getElementById('emoji-bar');
+  if(bar.style.display==='none'||!bar.style.display){
+    bar.style.display='flex';
+    bar.innerHTML='';
+    REACT_EMOJIS.forEach(em=>{
+      const b=document.createElement('button');
+      b.className='ep-em'; b.textContent=em;
+      b.onclick=()=>{
+        const ci=document.getElementById('ci');
+        ci.value+=em; ci.focus();
+        bar.style.display='none';
+      };
+      bar.appendChild(b);
+    });
+  } else { bar.style.display='none'; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   VOICE NOTES
+═══════════════════════════════════════════════════════ */
+let _mediaRecorder=null, _audioChunks=[], _recStart=null, _recTimer=null;
+
+async function toggleRecording(){
+  const btn=document.getElementById('voice-btn');
+  if(_mediaRecorder && _mediaRecorder.state==='recording'){
+    _mediaRecorder.stop(); return;
+  }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    _audioChunks=[];
+    _mediaRecorder=new MediaRecorder(stream);
+    _mediaRecorder.ondataavailable=e=>_audioChunks.push(e.data);
+    _mediaRecorder.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      btn.classList.remove('recording'); btn.textContent='🎙';
+      clearInterval(_recTimer);
+      const duration=Math.round((Date.now()-_recStart)/1000);
+      const blob=new Blob(_audioChunks,{type:'audio/webm'});
+      await sendVoiceNote(blob,duration);
+    };
+    _mediaRecorder.start();
+    _recStart=Date.now();
+    btn.classList.add('recording'); btn.textContent='⏹';
+    let secs=0;
+    _recTimer=setInterval(()=>{
+      secs++;
+      btn.title=`Recording ${secs}s — click to stop`;
+      if(secs>=120){ _mediaRecorder.stop(); } // max 2min
+    },1000);
+  }catch(e){ showToast('⚠ Microphone access denied',true); }
+}
+
+async function sendVoiceNote(blob, duration){
+  if(!_chatId||!ME) return;
+  // Convert to base64 for storage (works without external file storage)
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    const b64=reader.result;
+    const msgData={
+      group_id:_chatId, sender_id:ME.id,
+      sender_name:ME.name, sender_avatar:ME.avatar,
+      content:b64, msg_type:'voice', voice_duration:duration
+    };
+    appendMessage({...msgData,created_at:new Date().toISOString(),id:'tmp-'+Date.now()},true);
+    await SB.from('messages').insert(msgData);
+  };
+  reader.readAsDataURL(blob);
+}
+
+function playVoice(src, btn){
+  const audio=new Audio(src);
+  btn.textContent='⏸';
+  audio.play();
+  audio.onended=()=>{ btn.textContent='▶'; };
+  audio.onerror=()=>{ btn.textContent='▶'; showToast('⚠ Could not play audio',true); };
+}
+
+/* ═══════════════════════════════════════════════════════
+   FILE SENDING
+═══════════════════════════════════════════════════════ */
+async function sendFile(input){
+  const file=input.files[0]; if(!file||!_chatId||!ME) return;
+  input.value='';
+  if(file.size>5*1024*1024){ showToast('⚠ Max file size is 5MB',true); return; }
+  showToast('📎 Uploading…');
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    const meta=JSON.stringify({
+      name:file.name,
+      size:file.size>1024*1024?(file.size/1024/1024).toFixed(1)+'MB':(file.size/1024).toFixed(0)+'KB',
+      url:reader.result
+    });
+    const msgData={
+      group_id:_chatId, sender_id:ME.id,
+      sender_name:ME.name, sender_avatar:ME.avatar,
+      content:meta, msg_type:'file'
+    };
+    appendMessage({...msgData,created_at:new Date().toISOString(),id:'tmp-'+Date.now()},true);
+    await SB.from('messages').insert(msgData);
+    showToast('✓ File sent!');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ═══════════════════════════════════════════════════════
+   GROUP SETTINGS (admin only)
+═══════════════════════════════════════════════════════ */
+const GS_EMOJIS=['🌟','☀️','🔥','⚡','💎','🌊','🎯','🚀','🌈','🏔️','🌺','🦋','🐉','🌙',
+  '🌍','💫','🎮','🎵','🔮','🦄','🌴','🏛️','🎨','🤖','⭐','🌠','🪐','🌌','🦁','🏆'];
+let _gsSelEmoji='';
+
+function openGrpSettings(){
+  const g=GROUPS[_chatId]; if(!g||!ME||g.created_by!==ME.id) return;
+  _gsSelEmoji=g.emoji;
+  document.getElementById('gs-name').value=g.name;
+  document.getElementById('gs-desc').value=g.description||'';
+  // Render emoji grid
+  const row=document.getElementById('gs-emoji-row'); row.innerHTML='';
+  GS_EMOJIS.forEach(em=>{
+    const b=document.createElement('button');
+    b.className='gs-emoji'+(em===_gsSelEmoji?' sel':'');
+    b.textContent=em;
+    b.onclick=()=>{
+      _gsSelEmoji=em;
+      document.querySelectorAll('.gs-emoji').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+    };
+    row.appendChild(b);
+  });
+  document.getElementById('grp-settings-modal').classList.add('on');
+}
+
+function closeGrpSettings(){
+  document.getElementById('grp-settings-modal').classList.remove('on');
+}
+
+async function saveGrpSettings(){
+  const g=GROUPS[_chatId]; if(!g) return;
+  const name=document.getElementById('gs-name').value.trim();
+  const desc=document.getElementById('gs-desc').value.trim();
+  if(!name){ showToast('⚠ Group name cannot be empty',true); return; }
+
+  const {error}=await SB.from('groups').update({
+    name, description:desc, emoji:_gsSelEmoji
+  }).eq('id',_chatId);
+
+  if(error){ showToast('⚠ Save failed: '+error.message,true); return; }
+
+  GROUPS[_chatId].name=name;
+  GROUPS[_chatId].description=desc;
+  GROUPS[_chatId].emoji=_gsSelEmoji;
+  layoutDirty=true;
+
+  // Update chat panel header
+  document.getElementById('c-ico').textContent=_gsSelEmoji;
+  document.getElementById('c-nm').textContent=name;
+  document.getElementById('c-sb').textContent=desc;
+
+  closeGrpSettings();
+  showToast('✓ Group updated!');
+}
+
+async function deleteGroup(){
+  const g=GROUPS[_chatId]; if(!g||!ME||g.created_by!==ME.id) return;
+  if(!confirm(`Permanently delete "${g.name}"? This cannot be undone.`)) return;
+  if(!confirm(`Are you sure? All messages will be lost.`)) return;
+
+  // Delete messages, members, then group
+  await SB.from('messages').delete().eq('group_id',_chatId);
+  await SB.from('members').delete().eq('target_id',_chatId);
+  const {error}=await SB.from('groups').delete().eq('id',_chatId);
+  if(error){ showToast('⚠ Delete failed: '+error.message,true); return; }
+
+  delete GROUPS[_chatId];
+  JOINED.delete(_chatId);
+  LS.s('cos_j',[...JOINED]);
+  layoutDirty=true;
+  updateStats();
+  closeGrpSettings();
+  closeChat();
+  showToast('🗑 Group deleted.');
+}
+
+/* ═══════════════════════════════════════════════════════
    KICK MEMBER
 ═══════════════════════════════════════════════════════ */
 async function kickMember(userId, userName, targetId){
@@ -2078,7 +2594,7 @@ document.getElementById('ci').onkeydown=e=>{ if(e.key==='Enter')sendMsg(); else 
 document.getElementById('dm-send').onclick=sendDM;
 document.getElementById('dm-ci').onkeydown=e=>{ if(e.key==='Enter')sendDM(); };
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ closeChat(); closeInfo(); closeDM(); closeModal(); closeJoinCode(); closeProfile(); }
+  if(e.key==='Escape'){ closeChat(); closeInfo(); closeDM(); closeModal(); closeJoinCode(); closeProfile(); closeGrpSettings(); }
 });
 
 /* ═══════════════════════════════════════════════════════
@@ -2091,6 +2607,7 @@ async function startUniverse(){
   await loadAll();
   subscribeAll();
   startPresence();
+  requestNotifPerm();
   setTimeout(()=>{ document.getElementById('hint').style.opacity='0'; },7000);
 }
 
