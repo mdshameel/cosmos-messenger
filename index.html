@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
 <title>COSMOS — Universe Messenger</title>
 <meta name="description" content="Real-time space-themed group chat. Create solar systems, invite friends, chat live."/>
 <meta property="og:title" content="COSMOS — Universe Messenger"/>
@@ -18,7 +18,16 @@
   --txt:#dde4f0;--dim:#3a406a;
   --FD:'Orbitron',monospace;--FB:'Space Grotesk',sans-serif;
 }
-html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:var(--FB);color:var(--txt)}
+html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:var(--FB);color:var(--txt);
+  -webkit-text-size-adjust:100%;touch-action:manipulation}
+/* Prevent iOS double-tap zoom on buttons */
+button,input,[role=button]{touch-action:manipulation}
+/* Input font size ≥16px prevents iOS auto-zoom */
+@media(max-width:600px){
+  input,textarea,select{font-size:16px!important}
+  #ci{font-size:16px!important}
+  #dm-ci{font-size:16px!important}
+}
 #cv{position:fixed;inset:0;cursor:grab;touch-action:none;display:block}
 #cv.drag{cursor:grabbing}
 
@@ -719,6 +728,40 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
   #mobile-nav{padding-bottom:max(0px,env(safe-area-inset-bottom));
               height:calc(60px + env(safe-area-inset-bottom))}
   .panel,.panel.open{padding-bottom:max(0px,env(safe-area-inset-bottom))}
+}
+
+/* ══════════════════════════════════════════════
+   HIDE HUD WHEN PANEL IS OPEN ON MOBILE
+══════════════════════════════════════════════ */
+@media(max-width:900px){
+  /* When any panel is open, hide nav controls + minimap + coords */
+  body.panel-open #nav,
+  body.panel-open #mm,
+  body.panel-open #coords{
+    opacity:0;pointer-events:none;transition:opacity .2s}
+  body.panel-open #hint{display:none}
+
+  /* Chat panel bottom: sit just above mobile nav, not covering input */
+  @media(max-width:600px){
+    .panel{bottom:60px}
+    #dm-panel{bottom:60px}
+    /* Input bar sits correctly above safe area */
+    .cin{padding-bottom:max(14px,env(safe-area-inset-bottom))}
+  }
+}
+
+/* Fix keyboard push on mobile — let browser handle resize naturally */
+@media(max-width:600px){
+  html,body{height:100%;height:-webkit-fill-available}
+  .panel{
+    /* Use dvh so panel shrinks when keyboard appears */
+    height:calc(100dvh - 52px - 60px);
+    bottom:60px;top:52px;
+  }
+  #dm-panel{
+    height:calc(100dvh - 52px - 60px);
+    bottom:60px;top:52px;
+  }
 }
 
 /* ── MESSAGE CONTEXT MENU ── */
@@ -2234,18 +2277,33 @@ let onlinePanelOpen=false;
 function toggleOnline(){
   onlinePanelOpen=!onlinePanelOpen;
   document.getElementById('online-panel').classList.toggle('open',onlinePanelOpen);
+  if(onlinePanelOpen) document.body.classList.add('panel-open');
+  else checkPanelOpen();
   // Update mobile nav badge
   const lbl=document.getElementById('mnav-online-lbl');
   const cnt=Object.keys(ONLINE).length;
   if(lbl) lbl.textContent=cnt>0?`${cnt+1}`:'Online';
 }
 
+function checkPanelOpen(){
+  // Remove panel-open class only when ALL panels are closed
+  const anyOpen =
+    document.getElementById('chat-panel').classList.contains('open') ||
+    document.getElementById('info-panel').classList.contains('open') ||
+    document.getElementById('dm-panel').classList.contains('open') ||
+    document.getElementById('online-panel').classList.contains('open');
+  document.body.classList.toggle('panel-open', anyOpen);
+}
+
 function mnavTab(tab){
   document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('mnav-'+tab)?.classList.add('active');
   // Close any open panels when going back to explore
-  if(tab==='explore'){ closeChat(); closeInfo(); closeDM();
-    if(onlinePanelOpen) toggleOnline(); }
+  if(tab==='explore'){
+    closeChat(); closeInfo(); closeDM();
+    if(onlinePanelOpen) toggleOnline();
+    document.body.classList.remove('panel-open');
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2321,11 +2379,13 @@ function openInfo(id){
 
   closeChat();
   document.getElementById('info-panel').classList.add('open');
+  document.body.classList.add('panel-open');
 }
 
 function closeInfo(){
   document.getElementById('info-panel').classList.remove('open');
   _infoId=null;
+  checkPanelOpen();
 }
 
 function refreshInfoIfOpen(id){
@@ -2423,7 +2483,7 @@ async function openChat(id){
 
   closeInfo(); closeDM();
   document.getElementById('chat-panel').classList.add('open');
-  // Mobile: mark explore as active (panel covers screen)
+  document.body.classList.add('panel-open');
   document.querySelectorAll('.mnav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('mnav-explore')?.classList.add('active');
 
@@ -2457,6 +2517,7 @@ async function openChat(id){
 function closeChat(){
   document.getElementById('chat-panel').classList.remove('open');
   unsubscribeChat(); _chatId=null;
+  checkPanelOpen();
 }
 
 function appendMessage(m, isNew){
@@ -2734,6 +2795,7 @@ async function openDM(user){
   document.getElementById('dm-sb').textContent='Private conversation';
   closeInfo(); closeChat();
   document.getElementById('dm-panel').classList.add('open');
+  document.body.classList.add('panel-open');
   toggleOnline();
 
   const msgs=document.getElementById('dm-msgs');
@@ -2755,6 +2817,7 @@ async function openDM(user){
 function closeDM(){
   document.getElementById('dm-panel').classList.remove('open');
   unsubscribeDM(); _dmUser=null;
+  checkPanelOpen();
 }
 
 function appendDMMessage(m,isNew){
@@ -3797,6 +3860,19 @@ function showToast(msg,isErr=false){
 ═══════════════════════════════════════════════════════ */
 document.getElementById('csend').onclick=sendMsg;
 document.getElementById('ci').onkeydown=e=>{ if(e.key==='Enter')sendMsg(); else onTyping(); };
+document.getElementById('ci').addEventListener('focus',()=>{
+  // On mobile: scroll messages to bottom when keyboard opens
+  setTimeout(()=>{
+    const msgs=document.getElementById('msgs');
+    if(msgs) msgs.scrollTop=msgs.scrollHeight;
+  },350);
+});
+document.getElementById('dm-ci').addEventListener('focus',()=>{
+  setTimeout(()=>{
+    const msgs=document.getElementById('dm-msgs');
+    if(msgs) msgs.scrollTop=msgs.scrollHeight;
+  },350);
+});
 document.getElementById('dm-send').onclick=sendDM;
 document.getElementById('dm-ci').onkeydown=e=>{ if(e.key==='Enter')sendDM(); };
 document.addEventListener('keydown',e=>{
