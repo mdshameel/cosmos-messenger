@@ -192,22 +192,52 @@ button,input,[role=button]{touch-action:manipulation}
   text-overflow:ellipsis;white-space:nowrap;font-family:var(--FD);letter-spacing:.04em}
 
 /* ── HUD ── */
-#nav{position:fixed;left:162px;bottom:170px;z-index:55;
-  display:flex;flex-direction:column;gap:5px;align-items:center}
-.navbtn{width:34px;height:34px;border-radius:9px;background:rgba(3,3,16,.9);
-  border:1px solid var(--bdr);color:var(--txt);font-size:16px;cursor:pointer;
+/* Nav pill — bottom right corner */
+#nav{
+  position:fixed;right:18px;bottom:24px;z-index:55;
+  display:flex;flex-direction:column;gap:4px;align-items:center;
+  background:rgba(3,3,18,.88);border:1px solid rgba(91,127,255,.18);
+  border-radius:16px;padding:8px 6px;
+  backdrop-filter:blur(16px);
+  box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 0 1px rgba(91,127,255,.06)}
+.navbtn{
+  width:32px;height:32px;border-radius:9px;
+  background:transparent;border:1px solid transparent;
+  color:rgba(91,127,255,.6);font-size:15px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  backdrop-filter:blur(8px);transition:all .18s;font-family:var(--FD)}
-.navbtn:hover{background:rgba(91,127,255,.2);border-color:var(--acc)}
-#zoom-pct{font-size:8px;font-family:var(--FD);color:var(--dim);letter-spacing:.1em;padding:2px 0}
-#mm{position:fixed;left:18px;bottom:20px;z-index:55;width:136px;height:136px;
-  border-radius:12px;background:rgba(0,0,8,.88);border:1px solid var(--bdr);
-  backdrop-filter:blur(8px);overflow:hidden;cursor:pointer}
-#mm-cv{position:absolute;inset:0;width:100%;height:100%}
-#mm-lbl{position:absolute;bottom:5px;left:0;right:0;text-align:center;
-  font-size:7px;font-family:var(--FD);color:var(--dim);letter-spacing:.1em;pointer-events:none}
-#coords{position:fixed;left:162px;bottom:26px;z-index:55;
-  font-size:9px;font-family:var(--FD);color:var(--dim);letter-spacing:.08em;pointer-events:none}
+  transition:all .18s;font-family:var(--FD)}
+.navbtn:hover{background:rgba(91,127,255,.16);border-color:rgba(91,127,255,.3);color:#fff}
+.navbtn:active{transform:scale(.88)}
+.nav-sep{width:20px;height:1px;background:rgba(91,127,255,.12);margin:2px 0}
+#zoom-pct{
+  font-size:8px;font-family:var(--FD);color:rgba(91,127,255,.5);
+  letter-spacing:.1em;padding:1px 0;text-align:center}
+
+/* Minimap — bottom left, glass card */
+#mm{
+  position:fixed;left:18px;bottom:20px;z-index:55;
+  width:140px;height:140px;
+  border-radius:14px;
+  background:rgba(2,2,16,.92);
+  border:1px solid rgba(91,127,255,.18);
+  backdrop-filter:blur(16px);
+  overflow:hidden;cursor:pointer;
+  box-shadow:0 4px 24px rgba(0,0,0,.65),0 0 0 1px rgba(91,127,255,.06);
+  transition:border-color .2s}
+#mm:hover{border-color:rgba(91,127,255,.38)}
+#mm-cv{position:absolute;top:0;left:0;width:100%;height:116px;display:block}
+#mm-footer{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:3px 8px 5px;
+  background:linear-gradient(0deg,rgba(2,2,16,.95),rgba(2,2,16,.6));
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid rgba(91,127,255,.1)}
+#mm-lbl{
+  font-size:7px;font-family:var(--FD);color:rgba(91,127,255,.4);
+  letter-spacing:.12em;pointer-events:none}
+#coords{
+  font-size:7px;font-family:var(--FD);color:rgba(91,127,255,.35);
+  letter-spacing:.05em;pointer-events:none}
 
 /* ── ONLINE PANEL (left sidebar) ── */
 #online-panel{
@@ -792,10 +822,10 @@ button,input,[role=button]{touch-action:manipulation}
   .vsep{display:none}
   .tbtn{padding:6px 9px;font-size:8px;letter-spacing:.04em}
 
-  /* Minimap smaller */
-  #mm{width:100px;height:100px}
-  #nav{left:110px;bottom:140px}
-  #coords{left:110px;bottom:20px;font-size:8px}
+  /* HUD compact on tablet */
+  #mm{width:110px;height:110px}
+  #mm-cv{height:88px}
+  #nav{right:14px;bottom:18px}
 
   /* Modals */
   .mbox{width:calc(100vw - 16px);max-height:90vh;overflow-y:auto}
@@ -831,13 +861,14 @@ button,input,[role=button]{touch-action:manipulation}
   /* Show mobile nav */
   #mobile-nav{display:flex}
 
-  /* Minimap smaller + repositioned above mobile nav */
-  #mm{width:80px;height:80px;bottom:68px;left:10px}
+  /* Minimap above mobile nav */
+  #mm{width:90px;height:90px;bottom:68px;left:10px;right:auto}
+  #mm-cv{height:70px}
   #mm-lbl{font-size:6px}
-  #nav{left:96px;bottom:130px;gap:4px}
+  #coords{font-size:6px}
+  #nav{right:10px;bottom:72px;padding:6px 4px;gap:3px}
   .navbtn{width:28px;height:28px;font-size:13px}
   #zoom-pct{font-size:7px}
-  #coords{left:96px;bottom:72px;font-size:7px}
 
   /* Chat input — bigger touch targets */
   .cin{padding:8px 10px 10px}
@@ -885,7 +916,7 @@ button,input,[role=button]{touch-action:manipulation}
 @media(max-width:380px){
   .tbtn.pri{font-size:7px;padding:5px 7px}
   #mm{display:none}
-  #nav{left:10px;bottom:72px}
+  #nav{right:8px;bottom:70px;padding:5px 4px}
   #coords{display:none}
   .mbody{max-width:calc(100vw - 70px)}
 }
@@ -898,9 +929,9 @@ button,input,[role=button]{touch-action:manipulation}
   .panel{bottom:48px;top:52px}
   #dm-panel{bottom:48px;top:52px}
   #online-panel{bottom:48px}
-  #mm{bottom:56px;width:72px;height:72px}
-  #nav{bottom:112px;left:84px}
-  #coords{bottom:58px;left:84px}
+  #mm{bottom:56px;width:80px;height:80px;left:10px;right:auto}
+  #nav{bottom:60px;right:10px}
+  #coords{font-size:6px}
 }
 
 /* Safe area for notched phones (iPhone X+) */
@@ -1211,18 +1242,21 @@ button,input,[role=button]{touch-action:manipulation}
 
 <!-- NAV -->
 <div id="nav">
-  <button class="navbtn" onclick="doZoom(1.25)">+</button>
+  <button class="navbtn" onclick="doZoom(1.25)" title="Zoom in">＋</button>
   <div id="zoom-pct">100%</div>
-  <button class="navbtn" onclick="doZoom(.8)">−</button>
-  <button class="navbtn" onclick="resetView()" style="font-size:12px">⌂</button>
+  <button class="navbtn" onclick="doZoom(.8)" title="Zoom out">－</button>
+  <div class="nav-sep"></div>
+  <button class="navbtn" onclick="resetView()" title="Reset view" style="font-size:13px">⌂</button>
 </div>
 
 <!-- MINIMAP -->
 <div id="mm" onclick="mmClick(event)">
   <canvas id="mm-cv"></canvas>
-  <div id="mm-lbl">UNIVERSE MAP</div>
+  <div id="mm-footer">
+    <span id="mm-lbl">UNIVERSE MAP</span>
+    <span id="coords">X:0 Y:0</span>
+  </div>
 </div>
-<div id="coords">X:0 Y:0</div>
 
 <!-- ONLINE PANEL -->
 <div id="online-panel">
@@ -1766,7 +1800,7 @@ function resize(){
   canvas.width=W*DPR; canvas.height=H*DPR;
   canvas.style.width=W+'px'; canvas.style.height=H+'px';
   ctx.scale(DPR,DPR);
-  mmcv.width=134; mmcv.height=134;
+  mmcv.width=140; mmcv.height=116; // canvas fills top part, footer below
   genStars();
 }
 
@@ -2211,7 +2245,7 @@ function drawFrame(){
 }
 
 function drawMinimap(L){
-  const MW=134,MH=134;
+  const MW=140,MH=116;
   mmx.clearRect(0,0,MW,MH);
   mmx.fillStyle='rgba(0,0,10,.92)'; mmx.fillRect(0,0,MW,MH);
   for(let i=0;i<80;i++){
@@ -3527,7 +3561,7 @@ async function deleteDMMsg(m,msgEl){
 function toggleDMEmojiBar(){
   const bar=document.getElementById('dm-emoji-bar');
   if(bar.style.display==='none'||!bar.style.display){
-    renderFullEmojiPicker(bar);
+    renderFullEmojiPicker(bar, 'dm-ci'); // ← pass DM input id
     bar.style.display='flex';
     bar.style.flexDirection='column';
   } else { bar.style.display='none'; }
@@ -4060,7 +4094,7 @@ function renderReactions(msgId, msgEl){
 function toggleEmojiBar(){
   const bar=document.getElementById('emoji-bar');
   if(bar.style.display==='none'||!bar.style.display){
-    renderFullEmojiPicker(bar);
+    renderFullEmojiPicker(bar, 'ci'); // ← explicit group chat input
     bar.style.display='flex';
     bar.style.flexDirection='column';
   } else {
@@ -4068,11 +4102,10 @@ function toggleEmojiBar(){
   }
 }
 
-function renderFullEmojiPicker(bar){
+function renderFullEmojiPicker(bar, targetInputId='ci'){
   bar.innerHTML='';
   bar.style.cssText='display:flex;flex-direction:column;background:#07071e;border-top:1px solid var(--bdr);max-height:260px;overflow:hidden';
 
-  // Category tabs
   const tabs=document.createElement('div');
   tabs.style.cssText='display:flex;overflow-x:auto;gap:2px;padding:6px 6px 4px;border-bottom:1px solid var(--bdr);flex-shrink:0;scrollbar-width:none';
   const grid=document.createElement('div');
@@ -4089,8 +4122,9 @@ function renderFullEmojiPicker(bar){
       const b=document.createElement('button');
       b.className='ep-em'; b.textContent=em;
       b.onclick=()=>{
-        const ci=document.getElementById('ci');
-        ci.value+=em; ci.focus();
+        // Insert into whichever input is active
+        const ci=document.getElementById(targetInputId);
+        if(ci){ ci.value+=em; ci.focus(); }
       };
       grid.appendChild(b);
     });
@@ -4100,7 +4134,7 @@ function renderFullEmojiPicker(bar){
     const tab=document.createElement('button');
     tab.className='etab';
     tab.dataset.cat=cat;
-    tab.textContent=cat.split(' ')[0]; // just the emoji part
+    tab.textContent=cat.split(' ')[0];
     tab.title=cat;
     tab.style.cssText='padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.05);border:none;font-size:16px;cursor:pointer;flex-shrink:0;transition:background .15s';
     tab.onclick=()=>showCat(cat);
