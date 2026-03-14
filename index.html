@@ -96,10 +96,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 .id-err{font-size:10px;color:var(--red);text-align:center;display:none}
 
 /* ── TOPBAR ── */
-#bar{position:fixed;top:0;left:0;right:0;height:50px;z-index:60;
-  background:rgba(0,0,8,.9);border-bottom:1px solid var(--bdr);
-  backdrop-filter:blur(22px);
-  display:flex;align-items:center;gap:10px;padding:0 14px}
+#bar{position:fixed;top:0;left:0;right:0;height:52px;z-index:60;
+  background:linear-gradient(90deg,rgba(0,0,14,.96),rgba(2,2,18,.96));
+  border-bottom:1px solid rgba(91,127,255,.15);
+  backdrop-filter:blur(28px);
+  display:flex;align-items:center;gap:10px;padding:0 16px;
+  box-shadow:0 2px 20px rgba(0,0,0,.5)}
 .logo{font-family:var(--FD);font-size:14px;font-weight:900;letter-spacing:.18em;color:#fff}
 .logo b{color:var(--acc)}
 .vsep{width:1px;height:20px;background:var(--bdr);flex-shrink:0}
@@ -175,32 +177,43 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
   background:rgba(3,3,16,.88);border:1px solid var(--bdr);backdrop-filter:blur(8px);
   border-radius:18px;padding:7px 15px;font-size:10px;color:var(--dim);
   pointer-events:none;transition:opacity .6s;white-space:nowrap;z-index:54}
-#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);
-  background:rgba(91,127,255,.15);border:1px solid rgba(91,127,255,.3);
-  border-radius:12px;padding:9px 18px;font-size:11px;color:#a5b8ff;
-  pointer-events:none;opacity:0;transition:opacity .3s;z-index:100;
-  white-space:nowrap;backdrop-filter:blur(8px)}
-#toast.on{opacity:1}
-#toast.err{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.3);color:#fca5a5}
+#toast{position:fixed;top:62px;left:50%;transform:translateX(-50%) translateY(-4px);
+  background:rgba(7,7,28,.92);border:1px solid rgba(91,127,255,.35);
+  border-radius:20px;padding:9px 20px;font-size:11px;color:#a5b8ff;
+  pointer-events:none;opacity:0;
+  transition:opacity .3s,transform .3s cubic-bezier(.34,1.3,.64,1);
+  z-index:100;white-space:nowrap;backdrop-filter:blur(16px);
+  box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 0 1px rgba(91,127,255,.1)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{background:rgba(24,4,4,.95);border-color:rgba(248,113,113,.4);color:#fca5a5}
 
 /* ── PANELS (right) ── */
-.panel{position:fixed;top:50px;right:0;bottom:0;width:380px;
-  background:var(--panel);border-left:1px solid var(--bdr);
+.panel{position:fixed;top:50px;right:0;bottom:0;width:390px;
+  background:linear-gradient(180deg,rgba(4,4,22,.99) 0%,rgba(2,2,14,.99) 100%);
+  border-left:1px solid rgba(91,127,255,.18);
   display:flex;flex-direction:column;z-index:50;
-  transform:translateX(100%);transition:transform .36s cubic-bezier(.3,.72,0,1);
-  box-shadow:-14px 0 48px rgba(0,0,0,.85)}
+  transform:translateX(100%);transition:transform .38s cubic-bezier(.22,.72,0,1);
+  box-shadow:-20px 0 60px rgba(0,0,8,.95),-2px 0 0 rgba(91,127,255,.06)}
 .panel.open{transform:translateX(0)}
-.ph{padding:13px 13px 10px;border-bottom:1px solid var(--bdr);
-  display:flex;align-items:flex-start;gap:10px;position:relative;flex-shrink:0}
-.ph-ico{font-size:24px;flex-shrink:0;margin-top:1px}
+.ph{padding:14px 14px 11px;
+  background:linear-gradient(135deg,rgba(91,127,255,.08) 0%,rgba(167,139,250,.04) 100%);
+  border-bottom:1px solid rgba(91,127,255,.12);
+  display:flex;align-items:center;gap:10px;position:relative;flex-shrink:0}
+.ph-ico{font-size:26px;flex-shrink:0;filter:drop-shadow(0 0 8px currentColor)}
 .ph-nm{font-family:var(--FD);font-size:13px;font-weight:700;color:#fff;
-  letter-spacing:.04em;margin-bottom:2px;padding-right:28px}
+  letter-spacing:.04em;margin-bottom:2px;padding-right:58px}
 .ph-sb{font-size:10px;color:var(--dim);line-height:1.5}
-.ph-x{position:absolute;top:11px;right:11px;width:25px;height:25px;border-radius:50%;
-  background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--dim);
+.ph-actions{display:flex;align-items:center;gap:5px;position:absolute;top:12px;right:10px}
+.ph-action-btn{width:26px;height:26px;border-radius:50%;
+  background:rgba(255,255,255,.05);border:1px solid rgba(91,127,255,.15);color:var(--dim);
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .18s;flex-shrink:0}
+.ph-action-btn:hover{background:rgba(91,127,255,.2);border-color:var(--acc);color:#fff}
+.ph-x{width:26px;height:26px;border-radius:50%;
+  background:rgba(255,255,255,.05);border:1px solid rgba(91,127,255,.15);color:var(--dim);
   font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
   transition:all .18s}
-.ph-x:hover{background:rgba(255,255,255,.1);color:#fff}
+.ph-x:hover{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);color:var(--red)}
 .sbar{display:flex;border-bottom:1px solid var(--bdr);flex-shrink:0}
 .sc{flex:1;text-align:center;padding:9px 4px;border-right:1px solid var(--bdr)}
 .sc:last-child{border-right:none}
@@ -259,44 +272,67 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 /* ── CHAT PANEL ── */
 #msgs{flex:1;overflow-y:auto;padding:10px 13px;
   scrollbar-width:thin;scrollbar-color:#141430 transparent}
-.chat-info-bar{display:flex;align-items:center;gap:6px;padding:6px 13px;
-  border-bottom:1px solid var(--bdr);font-size:9px;background:rgba(52,211,153,.04);
-  flex-shrink:0;gap:8px}
-.chat-info-bar .lv{color:var(--grn)}
+.chat-info-bar{display:flex;align-items:center;gap:8px;padding:7px 14px;
+  border-bottom:1px solid rgba(91,127,255,.1);font-size:9px;
+  background:linear-gradient(90deg,rgba(52,211,153,.05),rgba(91,127,255,.03));
+  flex-shrink:0}
+.chat-info-bar .lv{color:var(--grn);display:flex;align-items:center;gap:4px}
+.chat-info-bar .lv::before{content:'';width:5px;height:5px;border-radius:50%;
+  background:var(--grn);box-shadow:0 0 6px var(--grn);
+  animation:livepulse 2s ease-in-out infinite}
+@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.4}}
 .typing-bar{padding:4px 13px;font-size:9px;color:var(--dim);min-height:20px;flex-shrink:0}
 .empty-chat{text-align:center;padding:40px 16px;color:var(--dim);font-size:11px;line-height:2.8}
 .empty-chat span{font-size:38px;display:block;opacity:.3;margin-bottom:6px}
 .dsep{text-align:center;font-size:9px;color:var(--dim);margin:5px 0 11px;position:relative}
 .dsep::before,.dsep::after{content:'';position:absolute;top:50%;width:27%;height:1px;background:var(--bdr)}
 .dsep::before{left:0}.dsep::after{right:0}
-.msg{display:flex;gap:8px;margin-bottom:10px;align-items:flex-end}
+.msg{display:flex;gap:9px;margin-bottom:12px;align-items:flex-end}
 .msg.me{flex-direction:row-reverse}
-.mav2{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:#0d0d28;
-  border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:12px}
-.mbody{max-width:250px}
-.mmeta{font-size:8px;color:var(--dim);margin-bottom:2px}
+.mav2{width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#0d0d2a,#131330);
+  border:1.5px solid rgba(91,127,255,.25);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.mbody{max-width:260px}
+.mmeta{font-size:9px;color:var(--dim);margin-bottom:3px;font-weight:500}
 .msg.me .mmeta{text-align:right}
-.mtext{padding:8px 12px;font-size:12px;line-height:1.55;word-break:break-word}
-.msg .mtext{background:rgba(255,255,255,.06);border:1px solid var(--bdr);
-  border-radius:13px 13px 13px 3px;color:var(--txt)}
-.msg.me .mtext{background:var(--acc);border:none;
-  border-radius:13px 13px 3px 13px;color:#fff}
-.msg-new{animation:msgin .22s ease both}
-@keyframes msgin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.msg-time{font-size:7px;color:var(--dim);margin-top:2px}
+.mtext{padding:9px 13px;font-size:12.5px;line-height:1.6;word-break:break-word;
+  position:relative}
+.msg .mtext{
+  background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.04));
+  border:1px solid rgba(91,127,255,.18);
+  border-radius:14px 14px 14px 3px;color:var(--txt);
+  box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.msg.me .mtext{
+  background:linear-gradient(135deg,#5b7fff,#4a6aee);
+  border:none;border-radius:14px 14px 3px 14px;color:#fff;
+  box-shadow:0 3px 14px rgba(91,127,255,.35)}
+.msg-new{animation:msgin .26s cubic-bezier(.34,1.3,.64,1) both}
+@keyframes msgin{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.msg-time{font-size:7.5px;color:var(--dim);margin-top:3px;opacity:.7}
 .msg.me .msg-time{text-align:right}
-.cin{padding:10px 12px 14px;border-top:1px solid var(--bdr);background:rgba(0,0,0,.2);flex-shrink:0}
-.cinrow{display:flex;gap:7px;align-items:center;background:rgba(255,255,255,.04);
-  border:1px solid var(--bdr);border-radius:11px;padding:8px 10px;transition:border-color .18s}
-.cinrow:focus-within{border-color:rgba(91,127,255,.45)}
+.cin{padding:10px 12px 14px;
+  border-top:1px solid rgba(91,127,255,.1);
+  background:linear-gradient(180deg,rgba(3,3,16,.6),rgba(2,2,12,.9));
+  flex-shrink:0;backdrop-filter:blur(10px)}
+.cinrow{display:flex;gap:6px;align-items:center;
+  background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(91,127,255,.18);
+  border-radius:14px;padding:8px 10px;transition:all .2s;
+  box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.cinrow:focus-within{border-color:rgba(91,127,255,.5);
+  box-shadow:0 2px 20px rgba(91,127,255,.12)}
 #ci{flex:1;background:transparent;border:none;outline:none;color:var(--txt);
-  font-family:var(--FB);font-size:12px}
-#ci::placeholder{color:var(--dim)}
-#csend{width:30px;height:30px;border-radius:8px;background:var(--acc);border:none;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .15s;flex-shrink:0}
-#csend:hover{background:#7b9bff}
-#csend:active{transform:scale(.88)}
+  font-family:var(--FB);font-size:13px}
+#ci::placeholder{color:rgba(58,64,106,.8)}
+#csend{width:32px;height:32px;border-radius:10px;
+  background:linear-gradient(135deg,var(--acc),#4a6aee);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .18s;flex-shrink:0;
+  box-shadow:0 2px 10px rgba(91,127,255,.4)}
+#csend:hover{background:linear-gradient(135deg,#7b9bff,#6680ff);transform:scale(1.06)}
+#csend:active{transform:scale(.9)}
 #csend svg{width:13px;height:13px;fill:#fff}
 
 /* ── DM PANEL ── */
@@ -525,42 +561,52 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 .file-dl:hover{background:#7b9bff}
 
 /* ── GROUP SETTINGS MODAL ── */
-#grp-settings-modal{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.82);
-  backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;
+#grp-settings-modal{position:fixed;inset:0;z-index:95;
+  background:rgba(0,0,16,.88);backdrop-filter:blur(18px);
+  display:flex;align-items:center;justify-content:center;
   opacity:0;pointer-events:none;transition:opacity .28s}
 #grp-settings-modal.on{opacity:1;pointer-events:all}
-.gs-box{width:380px;max-width:calc(100vw - 20px);background:#030312;
-  border:1px solid var(--bdr);border-radius:18px;padding:0;overflow:hidden;
-  box-shadow:0 30px 80px rgba(0,0,0,.95);display:flex;flex-direction:column}
-.gs-hd{padding:18px 20px 14px;border-bottom:1px solid var(--bdr);
-  display:flex;align-items:center;justify-content:space-between}
-.gs-title{font-family:var(--FD);font-size:13px;font-weight:700;color:#fff;letter-spacing:.06em}
-.gs-x{width:25px;height:25px;border-radius:50%;background:rgba(255,255,255,.05);
-  border:1px solid var(--bdr);color:var(--dim);font-size:14px;cursor:pointer;
+.gs-box{width:400px;max-width:calc(100vw - 20px);
+  background:linear-gradient(160deg,#07071e,#040414);
+  border:1px solid rgba(91,127,255,.2);border-radius:20px;padding:0;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,24,.95),0 0 0 1px rgba(91,127,255,.06);
+  display:flex;flex-direction:column;max-height:90vh}
+.gs-hd{padding:18px 20px 14px;
+  background:linear-gradient(135deg,rgba(91,127,255,.1),rgba(167,139,250,.05));
+  border-bottom:1px solid rgba(91,127,255,.12);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.gs-title{font-family:var(--FD);font-size:13px;font-weight:700;color:#fff;letter-spacing:.08em}
+.gs-x{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.05);
+  border:1px solid rgba(91,127,255,.15);color:var(--dim);font-size:14px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:all .18s}
-.gs-x:hover{color:#fff;background:rgba(255,255,255,.1)}
-.gs-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:70vh}
+.gs-x:hover{color:var(--red);background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3)}
+.gs-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px;
+  overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:#141430 transparent}
 .gs-label{font-size:8px;color:var(--dim);text-transform:uppercase;
-  letter-spacing:.14em;margin-bottom:3px;font-family:var(--FD)}
-.gs-inp{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--bdr);
-  border-radius:9px;padding:10px 13px;color:#fff;font-family:var(--FB);
-  font-size:13px;outline:none;transition:border-color .18s}
-.gs-inp:focus{border-color:rgba(91,127,255,.5)}
+  letter-spacing:.14em;margin-bottom:4px;font-family:var(--FD)}
+.gs-inp{width:100%;background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(91,127,255,.18);
+  border-radius:10px;padding:11px 13px;color:#fff;font-family:var(--FB);
+  font-size:13px;outline:none;transition:all .18s}
+.gs-inp:focus{border-color:rgba(91,127,255,.5);background:rgba(255,255,255,.08)}
 .gs-emoji-row{display:flex;flex-wrap:wrap;gap:5px}
-.gs-emoji{width:34px;height:34px;border-radius:8px;font-size:18px;
+.gs-emoji{width:36px;height:36px;border-radius:9px;font-size:19px;
   background:rgba(255,255,255,.04);border:2px solid transparent;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .14s}
-.gs-emoji:hover{background:rgba(255,255,255,.08)}
-.gs-emoji.sel{background:rgba(91,127,255,.18);border-color:var(--acc)}
-.gs-save{width:100%;padding:12px;border:none;border-radius:10px;
-  background:var(--acc);color:#fff;font-family:var(--FD);font-size:11px;
-  font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .18s;margin-top:4px}
-.gs-save:hover{background:#7b9bff}
-.gs-danger{padding:12px 20px;border-top:1px solid var(--bdr)}
-.gs-delete{width:100%;padding:11px;border-radius:10px;background:rgba(248,113,113,.1);
-  border:1px solid rgba(248,113,113,.3);color:var(--red);font-family:var(--FB);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.gs-emoji:hover{background:rgba(255,255,255,.1);transform:scale(1.1)}
+.gs-emoji.sel{background:rgba(91,127,255,.2);border-color:var(--acc);transform:scale(1.12)}
+.gs-save{width:100%;padding:12px;border:none;border-radius:11px;
+  background:linear-gradient(135deg,var(--acc),#4a6aee);
+  color:#fff;font-family:var(--FD);font-size:11px;
+  font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .18s;
+  box-shadow:0 3px 14px rgba(91,127,255,.35)}
+.gs-save:hover{transform:translateY(-1px);box-shadow:0 5px 20px rgba(91,127,255,.45)}
+.gs-danger{padding:12px 20px 16px;border-top:1px solid rgba(91,127,255,.1);flex-shrink:0}
+.gs-delete{width:100%;padding:11px;border-radius:10px;
+  background:rgba(248,113,113,.08);
+  border:1px solid rgba(248,113,113,.25);color:var(--red);font-family:var(--FB);
   font-size:12px;font-weight:600;cursor:pointer;transition:all .18s}
-.gs-delete:hover{background:rgba(248,113,113,.25)}
+.gs-delete:hover{background:rgba(248,113,113,.2);border-color:var(--red)}
 
 /* ── NOTIFICATION BADGE ── */
 .notif-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;
@@ -700,11 +746,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
       <div class="ph-nm" id="c-nm">—</div>
       <div class="ph-sb" id="c-sb">—</div>
     </div>
-    <button id="c-settings-btn" style="display:none;width:25px;height:25px;border-radius:50%;
-      background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:var(--dim);
-      font-size:13px;cursor:pointer;align-items:center;justify-content:center;
-      transition:all .18s;margin-right:4px" onclick="openGrpSettings()" title="Group settings">⚙</button>
-    <button class="ph-x" onclick="closeChat()">×</button>
+    <div class="ph-actions">
+      <button id="c-leave-btn" class="ph-action-btn" style="display:none" onclick="leaveGroup()" title="Leave group">🚪</button>
+      <button id="c-settings-btn" class="ph-action-btn" style="display:none" onclick="openGrpSettings()" title="Group settings">⚙</button>
+      <button class="ph-x" onclick="closeChat()">×</button>
+    </div>
   </div>
   <div class="chat-info-bar">
     <span class="lv">🔴 LIVE</span>
@@ -741,23 +787,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
       <div class="gs-title">⚙ Group Settings</div>
       <div class="gs-x" onclick="closeGrpSettings()">×</div>
     </div>
-    <div class="gs-body">
-      <div>
-        <div class="gs-label">Group Name</div>
-        <input class="gs-inp" id="gs-name" placeholder="Group name…" maxlength="32"/>
-      </div>
-      <div>
-        <div class="gs-label">Description</div>
-        <input class="gs-inp" id="gs-desc" placeholder="Description…" maxlength="80"/>
-      </div>
-      <div>
-        <div class="gs-label">Group Icon</div>
-        <div class="gs-emoji-row" id="gs-emoji-row"></div>
-      </div>
-      <button class="gs-save" onclick="saveGrpSettings()">Save Changes →</button>
+    <div class="gs-body" id="gs-body-content">
+      <!-- filled by JS based on role -->
     </div>
-    <div class="gs-danger">
-      <button class="gs-delete" onclick="deleteGroup()">🗑 Delete Group Permanently</button>
+    <div class="gs-danger" id="gs-danger-zone">
+      <!-- filled by JS -->
     </div>
   </div>
 </div>
@@ -1741,9 +1775,12 @@ async function openChat(id){
   document.getElementById('c-members-count').textContent=`${g.member_count||1} members`;
   const badge = document.getElementById('c-expiry-badge');
   badge.style.display = g.is_public ? 'inline' : 'none';
-  // Show settings gear only for group admin
+  // Show settings gear for admin, leave button for members
   const settBtn=document.getElementById('c-settings-btn');
-  if(settBtn) settBtn.style.display = (ME && g.created_by===ME.id)?'flex':'none';
+  const leaveBtn=document.getElementById('c-leave-btn');
+  const isAdmin = ME && g.created_by===ME.id;
+  if(settBtn) settBtn.style.display = isAdmin?'flex':'none';
+  if(leaveBtn) leaveBtn.style.display = (!isAdmin && JOINED.has(id))?'flex':'none';
 
   closeInfo(); closeDM();
   document.getElementById('chat-panel').classList.add('open');
@@ -1763,6 +1800,9 @@ async function openChat(id){
   }
   msgs.scrollTop=msgs.scrollHeight;
   document.getElementById('ci').focus();
+
+  // Request permissions on first chat open (user interaction required)
+  requestAllPermissions();
 
   // Subscribe to live messages
   subscribeToChat(id);
@@ -2214,6 +2254,34 @@ async function requestNotifPerm(){
   }
 }
 
+let _permsRequested=false;
+async function requestAllPermissions(){
+  if(_permsRequested) return;
+  _permsRequested=true;
+
+  // 1. Notifications
+  if('Notification' in window && Notification.permission==='default'){
+    try{
+      const p=await Notification.requestPermission();
+      _notifPerm = p==='granted';
+    }catch(e){}
+  } else if(Notification.permission==='granted'){ _notifPerm=true; }
+
+  // 2. Microphone — pre-request so voice notes work instantly
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(t=>t.stop()); // release immediately
+  }catch(e){
+    // User denied mic — voice notes will show error when attempted
+    console.info('Mic permission not granted:', e.name);
+  }
+
+  // Show a permission guide toast
+  if(!_notifPerm){
+    showToast('🔔 Enable notifications for message alerts');
+  }
+}
+
 function triggerNotification(m){
   // In-app badge
   if(document.hidden){
@@ -2463,23 +2531,84 @@ const GS_EMOJIS=['🌟','☀️','🔥','⚡','💎','🌊','🎯','🚀','🌈'
 let _gsSelEmoji='';
 
 function openGrpSettings(){
-  const g=GROUPS[_chatId]; if(!g||!ME||g.created_by!==ME.id) return;
-  _gsSelEmoji=g.emoji;
-  document.getElementById('gs-name').value=g.name;
-  document.getElementById('gs-desc').value=g.description||'';
-  // Render emoji grid
-  const row=document.getElementById('gs-emoji-row'); row.innerHTML='';
-  GS_EMOJIS.forEach(em=>{
-    const b=document.createElement('button');
-    b.className='gs-emoji'+(em===_gsSelEmoji?' sel':'');
-    b.textContent=em;
-    b.onclick=()=>{
-      _gsSelEmoji=em;
-      document.querySelectorAll('.gs-emoji').forEach(x=>x.classList.remove('sel'));
-      b.classList.add('sel');
-    };
-    row.appendChild(b);
-  });
+  const g=GROUPS[_chatId]; if(!g||!ME) return;
+  const isAdmin = g.created_by===ME.id;
+  _gsSelEmoji=g.emoji||'🌟';
+
+  const body=document.getElementById('gs-body-content');
+  const danger=document.getElementById('gs-danger-zone');
+  body.innerHTML=''; danger.innerHTML='';
+
+  if(isAdmin){
+    // Admin: full edit controls
+    body.innerHTML=`
+      <div>
+        <div class="gs-label">Group Name</div>
+        <input class="gs-inp" id="gs-name" placeholder="Group name…" maxlength="32" value="${esc(g.name)}"/>
+      </div>
+      <div>
+        <div class="gs-label">Description</div>
+        <input class="gs-inp" id="gs-desc" placeholder="Description…" maxlength="80" value="${esc(g.description||'')}"/>
+      </div>
+      <div>
+        <div class="gs-label">Group Icon</div>
+        <div class="gs-emoji-row" id="gs-emoji-row"></div>
+      </div>
+      <div>
+        <div class="gs-label">Transfer Admin Authority</div>
+        <div style="font-size:10px;color:var(--dim);margin-bottom:6px">Hand over creator rights to a member</div>
+        <div id="gs-transfer-list" style="display:flex;flex-direction:column;gap:5px;max-height:120px;overflow-y:auto"></div>
+      </div>
+      <button class="gs-save" onclick="saveGrpSettings()">Save Changes →</button>`;
+
+    // Emoji grid
+    const row=document.getElementById('gs-emoji-row');
+    GS_EMOJIS.forEach(em=>{
+      const b=document.createElement('button');
+      b.className='gs-emoji'+(em===_gsSelEmoji?' sel':'');
+      b.textContent=em;
+      b.onclick=()=>{ _gsSelEmoji=em; document.querySelectorAll('.gs-emoji').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); };
+      row.appendChild(b);
+    });
+
+    // Transfer admin list
+    SB.from('members').select('*').eq('target_id',_chatId).then(({data})=>{
+      const tl=document.getElementById('gs-transfer-list');
+      if(!tl) return;
+      const others=(data||[]).filter(m=>m.user_id!==ME.id);
+      if(!others.length){ tl.innerHTML='<div style="font-size:10px;color:var(--dim)">No other members yet.</div>'; return; }
+      others.forEach(m=>{
+        const d=document.createElement('div');
+        d.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;background:rgba(255,255,255,.03);border:1px solid var(--bdr)';
+        d.innerHTML=`<div style="font-size:16px">${m.user_avatar||'🧑'}</div>
+          <div style="font-size:11px;flex:1;color:var(--txt)">${esc(m.user_name)}</div>
+          <button onclick="transferAdmin('${m.user_id}','${esc(m.user_name)}')"
+            style="padding:4px 10px;border-radius:7px;background:rgba(167,139,250,.15);
+            border:1px solid rgba(167,139,250,.3);color:#a78bfa;font-size:10px;cursor:pointer;
+            transition:all .15s" onmouseover="this.style.background='rgba(167,139,250,.3)'"
+            onmouseout="this.style.background='rgba(167,139,250,.15)'">👑 Make Admin</button>`;
+        tl.appendChild(d);
+      });
+    });
+
+    danger.innerHTML=`<button class="gs-delete" onclick="deleteGroup()">🗑 Delete Group Permanently</button>`;
+  } else {
+    // Member: read-only info
+    body.innerHTML=`
+      <div style="text-align:center;padding:10px 0">
+        <div style="font-size:36px">${g.emoji||'🪐'}</div>
+        <div style="font-family:var(--FD);font-size:14px;color:#fff;margin-top:8px">${esc(g.name)}</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px">${esc(g.description||'No description')}</div>
+      </div>
+      <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px;font-size:11px;color:var(--dim);line-height:1.9">
+        Members: <strong style="color:var(--txt)">${g.member_count||1}</strong><br>
+        Messages: <strong style="color:var(--txt)">${g.message_count||0}</strong><br>
+        Type: <strong style="color:var(--txt)">${g.is_public?'🌐 Public':'🔒 Private'}</strong>
+      </div>`;
+    danger.innerHTML=`<button class="gs-delete" style="background:rgba(248,113,113,.06);color:rgba(248,113,113,.7)"
+      onclick="leaveGroup()">🚪 Leave Group</button>`;
+  }
+
   document.getElementById('grp-settings-modal').classList.add('on');
 }
 
@@ -2513,25 +2642,109 @@ async function saveGrpSettings(){
   showToast('✓ Group updated!');
 }
 
-async function deleteGroup(){
-  const g=GROUPS[_chatId]; if(!g||!ME||g.created_by!==ME.id) return;
-  if(!confirm(`Permanently delete "${g.name}"? This cannot be undone.`)) return;
-  if(!confirm(`Are you sure? All messages will be lost.`)) return;
+async function leaveGroup(){
+  const g=GROUPS[_chatId]; if(!g||!ME) return;
+  if(g.created_by===ME.id){
+    showToast('⚠ You are the creator. Transfer admin first or delete the group.',true);
+    return;
+  }
+  const confirmed=await showConfirmDialog(
+    `Leave "${g.name}"?`,
+    'You can rejoin anytime using the invite code.',
+    '🚪 Yes, Leave','Cancel'
+  );
+  if(!confirmed) return;
 
-  // Delete messages, members, then group
-  await SB.from('messages').delete().eq('group_id',_chatId);
-  await SB.from('members').delete().eq('target_id',_chatId);
-  const {error}=await SB.from('groups').delete().eq('id',_chatId);
-  if(error){ showToast('⚠ Delete failed: '+error.message,true); return; }
+  await SB.from('members').delete().eq('target_id',_chatId).eq('user_id',ME.id);
+  await SB.from('groups').update({member_count:Math.max(1,(g.member_count||1)-1)}).eq('id',_chatId);
 
-  delete GROUPS[_chatId];
   JOINED.delete(_chatId);
+  LS.s('cos_j',[...JOINED]);
+  if(GROUPS[_chatId]) GROUPS[_chatId].member_count=Math.max(1,(g.member_count||1)-1);
+  layoutDirty=true;
+  closeGrpSettings();
+  closeChat();
+  showToast('✓ You left the group.');
+}
+
+async function transferAdmin(newUserId, newUserName){
+  const g=GROUPS[_chatId]; if(!g||!ME||g.created_by!==ME.id) return;
+  const confirmed=await showConfirmDialog(
+    `Transfer admin to ${newUserName}?`,
+    `${newUserName} will become the new creator of "${g.name}". You will become a regular member.`,
+    '👑 Yes, Transfer','Cancel'
+  );
+  if(!confirmed) return;
+
+  const {error}=await SB.from('groups').update({
+    created_by:newUserId, creator_name:newUserName
+  }).eq('id',_chatId);
+
+  if(error){ showToast('⚠ Transfer failed: '+error.message,true); return; }
+
+  GROUPS[_chatId].created_by=newUserId;
+  GROUPS[_chatId].creator_name=newUserName;
+  closeGrpSettings();
+  // Update UI buttons
+  const settBtn=document.getElementById('c-settings-btn');
+  const leaveBtn=document.getElementById('c-leave-btn');
+  if(settBtn) settBtn.style.display='none';
+  if(leaveBtn) leaveBtn.style.display='flex';
+  showToast(`👑 Admin transferred to ${newUserName}!`);
+}
+
+async function deleteGroup(){
+  const g=GROUPS[_chatId]; if(!g||!ME) return;
+  if(g.created_by!==ME.id){ showToast('⚠ Only the creator can delete this group',true); return; }
+
+  // Use custom confirm inside modal (avoid browser popup blocking)
+  const confirmed = await showConfirmDialog(
+    `Delete "${g.name}"?`,
+    'All messages and members will be permanently removed. This cannot be undone.',
+    '🗑 Yes, Delete Forever', 'Cancel'
+  );
+  if(!confirmed) return;
+
+  const gid = _chatId; // capture before closing
+
+  // Show progress
+  showToast('⏳ Deleting group…');
+
+  // Delete in order: messages → members → group
+  const r1 = await SB.from('messages').delete().eq('group_id', gid);
+  if(r1.error && r1.error.code !== 'PGRST116') console.warn('msgs delete:', r1.error);
+
+  const r2 = await SB.from('members').delete().eq('target_id', gid);
+  if(r2.error && r2.error.code !== 'PGRST116') console.warn('members delete:', r2.error);
+
+  const r3 = await SB.from('groups').delete().eq('id', gid).eq('created_by', ME.id);
+  if(r3.error){ showToast('⚠ Delete failed: '+r3.error.message, true); return; }
+
+  delete GROUPS[gid];
+  JOINED.delete(gid);
   LS.s('cos_j',[...JOINED]);
   layoutDirty=true;
   updateStats();
   closeGrpSettings();
   closeChat();
-  showToast('🗑 Group deleted.');
+  showToast('✓ Group deleted successfully.');
+}
+
+// Custom confirm dialog (doesn't get blocked by browsers)
+function showConfirmDialog(title, message, confirmText='Confirm', cancelText='Cancel'){
+  return new Promise(resolve=>{
+    const overlay = document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center';
+    overlay.innerHTML=`<div style="width:340px;max-width:calc(100vw - 20px);background:#0a0a20;border:1px solid rgba(248,113,113,.3);border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.9)">
+      <div style="font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:#fff;text-align:center">${title}</div>
+      <div style="font-size:12px;color:#3a406a;text-align:center;line-height:1.7">${message}</div>
+      <button id="cdlg-confirm" style="padding:12px;border:none;border-radius:10px;background:rgba(248,113,113,.85);color:#fff;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;cursor:pointer">${confirmText}</button>
+      <button id="cdlg-cancel" style="padding:10px;border-radius:10px;background:transparent;border:1px solid rgba(91,127,255,.2);color:#3a406a;font-family:'Space Grotesk',sans-serif;font-size:12px;cursor:pointer">${cancelText}</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#cdlg-confirm').onclick=()=>{ overlay.remove(); resolve(true); };
+    overlay.querySelector('#cdlg-cancel').onclick=()=>{ overlay.remove(); resolve(false); };
+  });
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2650,7 +2863,7 @@ async function startUniverse(){
   await loadAll();
   subscribeAll();
   startPresence();
-  requestNotifPerm();
+  // Notification perm requested after user interaction (openChat)
   setTimeout(()=>{ document.getElementById('hint').style.opacity='0'; },7000);
 }
 
