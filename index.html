@@ -505,6 +505,24 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:#141430;border-radius:2px}
 
+/* ── MESSAGE CONTEXT MENU ── */
+.msg-menu{position:fixed;z-index:300;background:#09091f;
+  border:1px solid rgba(91,127,255,.25);border-radius:12px;
+  padding:5px;min-width:150px;
+  box-shadow:0 8px 32px rgba(0,0,0,.85);
+  animation:menuPop .15s cubic-bezier(.34,1.4,.64,1) both}
+@keyframes menuPop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.msg-menu-item{display:flex;align-items:center;gap:8px;padding:9px 13px;
+  border-radius:8px;cursor:pointer;font-size:12px;color:var(--txt);transition:background .12s}
+.msg-menu-item:hover{background:rgba(91,127,255,.15)}
+.msg-menu-item.danger{color:var(--red)}
+.msg-menu-item.danger:hover{background:rgba(248,113,113,.12)}
+.msg-menu-sep{height:1px;background:rgba(91,127,255,.12);margin:3px 5px}
+.msg-edited{font-size:8px;color:var(--dim);margin-top:1px;opacity:.7;font-style:italic}
+.msg-edit-input{width:100%;background:rgba(255,255,255,.08);border:1.5px solid var(--acc);
+  border-radius:8px;padding:7px 10px;color:#fff;font-family:var(--FB);font-size:12px;
+  outline:none;margin-top:4px;resize:none}
+
 /* ── EMOJI REACTIONS ── */
 .msg-reactions{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
 .reaction-btn{padding:2px 7px;border-radius:20px;font-size:11px;cursor:pointer;
@@ -1076,24 +1094,45 @@ function buildLayout(){
     const angle=si*GOLDEN, dist=si===0?0:500+si*380;
     const hash=stableHash(sid);
     const jx=((hash&0xff)-128)*1.2, jy=(((hash>>8)&0xff)-128)*1.2;
-    // Use DB world coords if stored, else compute
     const sx = s.world_x || Math.cos(angle)*dist+jx;
     const sy = s.world_y || Math.sin(angle)*dist+jy;
-    s._sx=sx; s._sy=sy; // cache
+    s._sx=sx; s._sy=sy;
     const isJ=JOINED.has(sid);
-    res.push({id:sid,kind:'system',x:sx,y:sy,r:54+Math.min((s.member_count||1)*2,24),
+    // Sun radius
+    const sunR = 50+Math.min((s.member_count||1)*2,28);
+    res.push({id:sid,kind:'system',x:sx,y:sy,r:sunR,
       color:s.color,emoji:s.emoji,name:s.name,glow:isJ,data:s});
 
-    // Groups of this system
-    Object.values(GROUPS).filter(g=>g.system_id===sid).forEach((g,gi)=>{
-      const orbitR = g.orbit_radius||130+gi*70;
-      const ga0 = g.orbit_angle||(stableHash(g.id)%628)/100;
-      if(!g._orbitA) g._orbitA=ga0;
+    // Groups — assign collision-free, evenly spaced orbits
+    const grps=Object.values(GROUPS).filter(g=>g.system_id===sid);
+    const n=grps.length;
+    // Orbit radii: start well outside sun, space out by planet size + gap
+    // Base orbit = sunR * 2.6 + 40, each next orbit += planet diameter + 50
+    const BASE_ORBIT = sunR*2.6+40;
+    const ORBIT_GAP  = 70; // between orbit rings
+    const PLANET_R   = (gi)=>22+Math.min((grps[gi]?.member_count||1)*1.5,16);
+
+    // Sort groups by creation order (stable)
+    grps.sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+
+    grps.forEach((g,gi)=>{
+      // Each planet gets its own orbit ring, no sharing
+      const orbitR = BASE_ORBIT + gi*(ORBIT_GAP + PLANET_R(gi)*2);
+      // Stable starting angle from group id hash
+      const ga0 = g._orbitA !== undefined ? g._orbitA : (stableHash(g.id)%628)/100;
+      if(g._orbitA===undefined) g._orbitA=ga0;
+      // Speed: outer planets orbit slower (Kepler's 3rd law feel)
+      const speed = (g.orbit_speed||0.00055) / Math.sqrt(1+gi*0.4);
+      const pr=PLANET_R(gi);
       res.push({id:g.id,kind:'group',parentId:sid,px:sx,py:sy,
-        orbitR,orbitA:g._orbitA,orbitSpd:g.orbit_speed||.0005+gi*.00013,
+        orbitR, orbitA:g._orbitA, orbitSpd:speed,
         x:sx+Math.cos(g._orbitA)*orbitR, y:sy+Math.sin(g._orbitA)*orbitR,
-        r:28+Math.min((g.member_count||1),14),
-        color:g.color,emoji:g.emoji,name:g.name,glow:JOINED.has(g.id),data:g});
+        r:pr, color:g.color,emoji:g.emoji,name:g.name,
+        glow:JOINED.has(g.id),data:g,
+        // Planet visual variety
+        hasRing: stableHash(g.id)%5===0,
+        tilt: (stableHash(g.id+'t')%30-15)*Math.PI/180,
+      });
     });
   });
   LAYOUT=res; layoutDirty=false;
@@ -1175,80 +1214,178 @@ function drawFrame(){
     orbitTs=now;
   }
 
-  // Orbit rings
-  ctx.save(); ctx.setLineDash([3,9]);
+  // ── Orbit ellipses (behind everything) ──
   L.forEach(item=>{
     if(item.kind!=='group')return;
     const pc=w2s(item.px,item.py);
+    const orx=item.orbitR*cam.z;
+    const ory=orx*0.18; // flat ellipse tilt
+    // Outer shadow ring
+    ctx.save(); ctx.setLineDash([]);
     ctx.beginPath();
-    ctx.ellipse(pc.x,pc.y,item.orbitR*cam.z,item.orbitR*cam.z*.22,0.28,0,Math.PI*2);
-    ctx.strokeStyle='rgba(91,127,255,.06)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.ellipse(pc.x,pc.y,orx+1,ory+.5,0.28,0,Math.PI*2);
+    ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.lineWidth=2.5; ctx.stroke();
+    ctx.restore();
+    // Main orbit ring with gradient shimmer
+    ctx.save(); ctx.setLineDash([6,14]);
+    ctx.beginPath();
+    ctx.ellipse(pc.x,pc.y,orx,ory,0.28,0,Math.PI*2);
+    const og=ctx.createLinearGradient(pc.x-orx,pc.y,pc.x+orx,pc.y);
+    og.addColorStop(0,'rgba(91,127,255,.03)');
+    og.addColorStop(.5,'rgba(91,127,255,.14)');
+    og.addColorStop(1,'rgba(91,127,255,.03)');
+    ctx.strokeStyle=og; ctx.lineWidth=1; ctx.stroke();
+    ctx.restore();
   });
-  ctx.restore();
 
-  // Spheres
+  // ── Spheres ──
   L.forEach(item=>{
     const sc=w2s(item.x,item.y);
     const r=item.r*cam.z;
-    if(sc.x+r*3.5<0||sc.x-r*3.5>W||sc.y+r*3.5<0||sc.y-r*3.5>H)return;
+    if(sc.x+r*4<0||sc.x-r*4>W||sc.y+r*4<0||sc.y-r*4>H)return;
     const hov=hovId===item.id;
+    const col=item.color;
 
-    // Glow
-    if(item.glow||hov){
-      const gr=r*(hov?3.2:2.5);
-      const grd=ctx.createRadialGradient(sc.x,sc.y,r*.15,sc.x,sc.y,gr);
-      grd.addColorStop(0,item.color+'70'); grd.addColorStop(.45,item.color+'25');
+    // ── Ambient glow ──
+    if(item.glow||hov||item.kind==='system'){
+      const gr=r*(item.kind==='system'?3.8:hov?3.2:2.2);
+      const grd=ctx.createRadialGradient(sc.x,sc.y,r*.2,sc.x,sc.y,gr);
+      const alpha=item.kind==='system'?'55':hov?'50':'30';
+      grd.addColorStop(0,col+alpha);
+      grd.addColorStop(.5,col+'18');
       grd.addColorStop(1,'rgba(0,0,0,0)');
       ctx.beginPath(); ctx.arc(sc.x,sc.y,gr,0,Math.PI*2);
       ctx.fillStyle=grd; ctx.fill();
     }
-    // Rings (system only)
+
     if(item.kind==='system'){
-      [0,1,2].forEach(ri=>{
-        const rr=r*(1.18+ri*.22);
-        const al=ri===0?.55:ri===1?.32:.16;
+      // ══ SUN RENDERING ══
+      // Outer corona
+      const corona=ctx.createRadialGradient(sc.x,sc.y,r*.8,sc.x,sc.y,r*2.4);
+      corona.addColorStop(0,col+'22'); corona.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(sc.x,sc.y,r*2.4,0,Math.PI*2);
+      ctx.fillStyle=corona; ctx.fill();
+
+      // Saturn-like rings — 3 layered ellipses
+      [
+        {s:1.9,t:.24,a:.5,w:.22},
+        {s:2.3,t:.22,a:.3,w:.14},
+        {s:2.7,t:.20,a:.18,w:.1}
+      ].forEach(({s,t,a,w})=>{
+        const rr=r*s;
         ctx.beginPath();
-        ctx.ellipse(sc.x,sc.y,rr*1.68,rr*.3,0.38+ri*.08,0,Math.PI*2);
-        ctx.strokeStyle=item.color+Math.round(al*255).toString(16).padStart(2,'0');
-        ctx.lineWidth=r*(ri===0?.18:.1); ctx.stroke();
+        ctx.ellipse(sc.x,sc.y,rr,rr*t,0.34,0,Math.PI*2);
+        ctx.strokeStyle=col+Math.round(a*255).toString(16).padStart(2,'0');
+        ctx.lineWidth=r*w; ctx.stroke();
       });
+
+      // Core sphere — multi-layer gradient for depth
+      const core=ctx.createRadialGradient(sc.x-r*.38,sc.y-r*.36,r*.03,sc.x,sc.y,r);
+      core.addColorStop(0,'rgba(255,255,240,.98)');
+      core.addColorStop(.08,col+'ff');
+      core.addColorStop(.4,col+'ee');
+      core.addColorStop(.75,col+'aa');
+      core.addColorStop(1,col+'20');
+      ctx.beginPath(); ctx.arc(sc.x,sc.y,r,0,Math.PI*2);
+      ctx.fillStyle=core; ctx.fill();
+
+      // Surface texture bands (subtle)
+      if(r>20){
+        ctx.save(); ctx.globalAlpha=0.06; ctx.clip();
+        for(let b=0;b<3;b++){
+          const by=sc.y-r*.3+b*r*.3;
+          ctx.beginPath(); ctx.ellipse(sc.x,by,r*.9,r*.08,0,0,Math.PI*2);
+          ctx.fillStyle='rgba(0,0,0,.8)'; ctx.fill();
+        }
+        ctx.restore();
+      }
+    } else {
+      // ══ PLANET RENDERING ══
+      // Planet back-shadow (dark side)
+      const shadow=ctx.createRadialGradient(sc.x+r*.5,sc.y+r*.4,0,sc.x,sc.y,r);
+      shadow.addColorStop(0,'rgba(0,0,0,0)');
+      shadow.addColorStop(.55,'rgba(0,0,0,0)');
+      shadow.addColorStop(1,'rgba(0,0,0,.75)');
+
+      // Planet main body
+      const body=ctx.createRadialGradient(sc.x-r*.36,sc.y-r*.34,r*.04,sc.x,sc.y,r);
+      body.addColorStop(0,'rgba(255,255,255,.92)');
+      body.addColorStop(.12,col+'ff');
+      body.addColorStop(.5,col+'dd');
+      body.addColorStop(.85,col+'88');
+      body.addColorStop(1,col+'15');
+      ctx.beginPath(); ctx.arc(sc.x,sc.y,r,0,Math.PI*2);
+      ctx.fillStyle=body; ctx.fill();
+
+      // Day/night shadow overlay
+      ctx.beginPath(); ctx.arc(sc.x,sc.y,r,0,Math.PI*2);
+      ctx.fillStyle=shadow; ctx.fill();
+
+      // Atmosphere rim
+      if(r>10){
+        const atm=ctx.createRadialGradient(sc.x,sc.y,r*.85,sc.x,sc.y,r*1.15);
+        atm.addColorStop(0,'rgba(0,0,0,0)');
+        atm.addColorStop(.7,col+'18');
+        atm.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.beginPath(); ctx.arc(sc.x,sc.y,r*1.15,0,Math.PI*2);
+        ctx.fillStyle=atm; ctx.fill();
+      }
+
+      // Optional planetary ring (some planets)
+      if(item.hasRing && r>8){
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(sc.x,sc.y,r*1.8,r*.22,item.tilt||0.3,0,Math.PI*2);
+        ctx.strokeStyle=col+'55'; ctx.lineWidth=r*.18; ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(sc.x,sc.y,r*2.1,r*.26,item.tilt||0.3,0,Math.PI*2);
+        ctx.strokeStyle=col+'28'; ctx.lineWidth=r*.12; ctx.stroke();
+        ctx.restore();
+      }
     }
-    // 3D sphere
-    const sph=ctx.createRadialGradient(sc.x-r*.34,sc.y-r*.34,r*.04,sc.x,sc.y,r);
-    sph.addColorStop(0,'rgba(255,255,255,.95)');
-    sph.addColorStop(.1,item.color+'ff');
-    sph.addColorStop(.55,item.color+'cc');
-    sph.addColorStop(1,item.color+'28');
+
+    // ── Specular highlight (both types) ──
+    const spec=ctx.createRadialGradient(sc.x-r*.42,sc.y-r*.42,0,sc.x-r*.28,sc.y-r*.28,r*.55);
+    spec.addColorStop(0,'rgba(255,255,255,'+(item.kind==='system'?.5:.32)+')');
+    spec.addColorStop(.6,'rgba(255,255,255,.04)');
+    spec.addColorStop(1,'transparent');
     ctx.beginPath(); ctx.arc(sc.x,sc.y,r,0,Math.PI*2);
-    ctx.fillStyle=sph; ctx.fill();
-    // Specular
-    const sp=ctx.createRadialGradient(sc.x-r*.4,sc.y-r*.4,0,sc.x-r*.3,sc.y-r*.3,r*.52);
-    sp.addColorStop(0,'rgba(255,255,255,.38)'); sp.addColorStop(1,'transparent');
-    ctx.beginPath(); ctx.arc(sc.x,sc.y,r,0,Math.PI*2);
-    ctx.fillStyle=sp; ctx.fill();
-    // Hover ring
+    ctx.fillStyle=spec; ctx.fill();
+
+    // ── Hover ring ──
     if(hov){
-      ctx.beginPath(); ctx.arc(sc.x,sc.y,r+2.5,0,Math.PI*2);
-      ctx.strokeStyle=item.color+'bb'; ctx.lineWidth=2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(sc.x,sc.y,r+3,0,Math.PI*2);
+      const hr=ctx.createLinearGradient(sc.x-r,sc.y-r,sc.x+r,sc.y+r);
+      hr.addColorStop(0,col+'cc'); hr.addColorStop(1,col+'44');
+      ctx.strokeStyle=hr; ctx.lineWidth=2; ctx.stroke();
     }
-    // Emoji
-    if(r>7){
-      ctx.font=`${Math.max(9,r*.72)}px serif`;
+
+    // ── Emoji ──
+    if(r>8){
+      const fs=Math.max(10,Math.min(r*.68,item.kind==='system'?r*.55:r*.7));
+      ctx.font=`${fs}px serif`;
       ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillStyle='rgba(255,255,255,.9)'; ctx.fillText(item.emoji,sc.x,sc.y);
+      ctx.shadowColor=col; ctx.shadowBlur=r*.4;
+      ctx.fillStyle='rgba(255,255,255,.92)';
+      ctx.fillText(item.emoji,sc.x,sc.y);
+      ctx.shadowBlur=0;
     }
-    // Label
-    if(cam.z>.3&&r>5){
-      const fs=Math.min(11,Math.max(7,r*.38));
+
+    // ── Label ──
+    if(cam.z>.28&&r>5){
+      const fs=Math.min(12,Math.max(7,r*.4));
+      // Text shadow for readability
+      ctx.shadowColor='rgba(0,0,0,.8)'; ctx.shadowBlur=4;
       ctx.font=`600 ${fs}px 'Space Grotesk',sans-serif`;
       ctx.textAlign='center'; ctx.textBaseline='top';
-      ctx.fillStyle='rgba(210,222,245,.78)';
-      ctx.fillText(item.name,sc.x,sc.y+r+10);
+      ctx.fillStyle=item.glow?'rgba(200,218,255,.95)':'rgba(190,205,240,.72)';
+      ctx.fillText(item.name,sc.x,sc.y+r+(item.kind==='system'?14:8));
       if(item.kind==='system'&&cam.z>.5){
-        ctx.font=`400 ${fs*.82}px 'Space Grotesk',sans-serif`;
-        ctx.fillStyle='rgba(100,120,200,.5)';
-        ctx.fillText(`${item.data.member_count||1} members`,sc.x,sc.y+r+10+fs+3);
+        ctx.font=`400 ${fs*.78}px 'Space Grotesk',sans-serif`;
+        ctx.fillStyle='rgba(91,127,255,.6)';
+        ctx.fillText(`${item.data.member_count||1} members`,sc.x,sc.y+r+14+fs+2);
       }
+      ctx.shadowBlur=0;
     }
   });
 
@@ -1844,11 +1981,14 @@ function appendMessage(m, isNew){
       <div class="msg-time">${t}</div>
     </div>`;
 
-  // Long-press or right-click to react
+  // Right-click / long-press → context menu (edit, delete, react)
   const body=d.querySelector('.mbody');
-  body.addEventListener('contextmenu',e=>{e.preventDefault();showReactionPicker(e,m.id,d);});
-  let lpt; 
-  body.addEventListener('touchstart',()=>{lpt=setTimeout(()=>showReactionPickerTouch(m.id,d),500);},{passive:true});
+  body.addEventListener('contextmenu',e=>{e.preventDefault();showMsgMenu(e,m,d,isSelf);});
+  let lpt;
+  body.addEventListener('touchstart',()=>{lpt=setTimeout(()=>{
+    const r=body.getBoundingClientRect();
+    showMsgMenu({clientX:r.left+r.width/2,clientY:r.top},m,d,isSelf);
+  },500);},{passive:true});
   body.addEventListener('touchend',()=>clearTimeout(lpt),{passive:true});
 
   msgs.appendChild(d);
@@ -1914,6 +2054,139 @@ async function sendMsg(){
   // Update message count
   const g=GROUPS[_chatId];
   if(g) await SB.from('groups').update({message_count:(g.message_count||0)+1}).eq('id',_chatId);
+}
+
+/* ═══════════════════════════════════════════════════════
+   MESSAGE EDIT / DELETE
+═══════════════════════════════════════════════════════ */
+let _activeMenu=null;
+
+function showMsgMenu(e, m, msgEl, isSelf){
+  closeMsgMenu();
+  const menu=document.createElement('div');
+  menu.className='msg-menu';
+  // Position near click but keep within viewport
+  const mx=Math.min(e.clientX, window.innerWidth-170);
+  const my=Math.min(e.clientY, window.innerHeight-160);
+  menu.style.cssText=`left:${mx}px;top:${my}px`;
+
+  const items=[];
+  // React always available
+  items.push({icon:'😊',label:'React',fn:()=>{ closeMsgMenu(); showReactionPicker(e,m.id,msgEl); }});
+
+  if(isSelf && m.id && !m.id.startsWith('tmp-')){
+    if(!m.msg_type||m.msg_type==='text'){
+      items.push({sep:true});
+      items.push({icon:'✏️',label:'Edit message',fn:()=>{ closeMsgMenu(); startEditMsg(m,msgEl); }});
+    }
+    items.push({icon:'🗑',label:'Delete message',fn:()=>{ closeMsgMenu(); deleteMsg(m,msgEl); },danger:true});
+  }
+
+  items.forEach(it=>{
+    if(it.sep){ const s=document.createElement('div'); s.className='msg-menu-sep'; menu.appendChild(s); return; }
+    const d=document.createElement('div');
+    d.className='msg-menu-item'+(it.danger?' danger':'');
+    d.innerHTML=`<span style="font-size:14px">${it.icon}</span>${it.label}`;
+    d.onclick=it.fn;
+    menu.appendChild(d);
+  });
+
+  document.body.appendChild(menu);
+  _activeMenu=menu;
+  setTimeout(()=>document.addEventListener('click',closeMsgMenu,{once:true}),50);
+}
+
+function closeMsgMenu(){
+  _activeMenu?.remove(); _activeMenu=null;
+}
+
+function startEditMsg(m, msgEl){
+  const mtext=msgEl.querySelector('.mtext');
+  if(!mtext) return;
+  const orig=m.content;
+  mtext.style.display='none';
+  const ta=document.createElement('textarea');
+  ta.className='msg-edit-input';
+  ta.value=orig;
+  ta.rows=Math.max(1,Math.ceil(orig.length/40));
+  mtext.parentNode.insertBefore(ta,mtext.nextSibling);
+  ta.focus();
+  ta.select();
+
+  // Buttons row
+  const btns=document.createElement('div');
+  btns.style.cssText='display:flex;gap:5px;margin-top:5px';
+  btns.innerHTML=`
+    <button onclick="saveEditMsg()" style="flex:1;padding:5px 10px;border-radius:7px;
+      background:var(--acc);border:none;color:#fff;font-size:11px;cursor:pointer">Save</button>
+    <button onclick="cancelEditMsg()" style="flex:1;padding:5px 10px;border-radius:7px;
+      background:rgba(255,255,255,.07);border:1px solid var(--bdr);color:var(--dim);font-size:11px;cursor:pointer">Cancel</button>`;
+  ta.parentNode.insertBefore(btns, ta.nextSibling);
+
+  // Store refs
+  msgEl._editData={m,mtext,ta,btns,orig};
+  ta.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();saveEditMsg();}
+    if(e.key==='Escape') cancelEditMsg();
+  });
+}
+
+async function saveEditMsg(){
+  // Find the message el with edit data
+  const msgEl=document.querySelector('[data-msg-id]._editing')||
+    [...document.querySelectorAll('[data-msg-id]')].find(el=>el._editData);
+  if(!msgEl||!msgEl._editData) return;
+  const {m,mtext,ta,btns,orig}=msgEl._editData;
+  const newText=ta.value.trim();
+  if(!newText){showToast('⚠ Message cannot be empty',true);return;}
+  if(newText===orig){cancelEditMsg();return;}
+
+  const {error}=await SB.from('messages').update({
+    content:newText, is_edited:true
+  }).eq('id',m.id).eq('sender_id',ME.id);
+
+  if(error){showToast('⚠ Edit failed: '+error.message,true);return;}
+
+  m.content=newText;
+  mtext.innerHTML=esc(newText);
+  mtext.style.display='';
+  // Add edited tag
+  let editedTag=msgEl.querySelector('.msg-edited');
+  if(!editedTag){
+    editedTag=document.createElement('div');
+    editedTag.className='msg-edited';
+    editedTag.textContent='edited';
+    mtext.parentNode.insertBefore(editedTag,mtext.nextSibling);
+  }
+  ta.remove(); btns.remove();
+  delete msgEl._editData;
+  showToast('✓ Message edited');
+}
+
+function cancelEditMsg(){
+  const msgEl=[...document.querySelectorAll('[data-msg-id]')].find(el=>el._editData);
+  if(!msgEl||!msgEl._editData) return;
+  const {mtext,ta,btns}=msgEl._editData;
+  mtext.style.display='';
+  ta.remove(); btns.remove();
+  delete msgEl._editData;
+}
+
+async function deleteMsg(m, msgEl){
+  if(!m.id||m.id.startsWith('tmp-')){msgEl.remove();return;}
+  const confirmed=await showConfirmDialog(
+    'Delete message?','This message will be permanently removed for everyone.',
+    '🗑 Delete','Cancel'
+  );
+  if(!confirmed) return;
+  const {error}=await SB.from('messages').delete()
+    .eq('id',m.id).eq('sender_id',ME.id);
+  if(error){showToast('⚠ Delete failed: '+error.message,true);return;}
+  // Animate out
+  msgEl.style.transition='all .22s';
+  msgEl.style.opacity='0';
+  msgEl.style.transform='scale(.9)';
+  setTimeout(()=>msgEl.remove(),220);
 }
 
 function onTyping(){
@@ -2850,7 +3123,7 @@ document.getElementById('ci').onkeydown=e=>{ if(e.key==='Enter')sendMsg(); else 
 document.getElementById('dm-send').onclick=sendDM;
 document.getElementById('dm-ci').onkeydown=e=>{ if(e.key==='Enter')sendDM(); };
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ closeChat(); closeInfo(); closeDM(); closeModal(); closeJoinCode(); closeProfile(); closeGrpSettings(); }
+  if(e.key==='Escape'){ closeChat(); closeInfo(); closeDM(); closeModal(); closeJoinCode(); closeProfile(); closeGrpSettings(); closeMsgMenu(); cancelEditMsg(); }
 });
 
 /* ═══════════════════════════════════════════════════════
