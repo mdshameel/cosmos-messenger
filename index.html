@@ -872,6 +872,65 @@ button,input,[role=button]{touch-action:manipulation}
 .voice-wave{flex:1;height:20px;position:relative;overflow:hidden}
 .voice-bar{position:absolute;bottom:0;width:3px;border-radius:2px;background:var(--acc);opacity:.6}
 
+/* ── VOICE RECORDING INDICATOR (while recording) ── */
+#voice-recording-bar{
+  display:none;padding:10px 14px;
+  background:linear-gradient(90deg,rgba(248,113,113,.08),rgba(248,113,113,.04));
+  border-top:1px solid rgba(248,113,113,.2);
+  flex-shrink:0;align-items:center;gap:10px}
+#voice-recording-bar.active{display:flex}
+.vrec-pulse{width:10px;height:10px;border-radius:50%;background:var(--red);
+  flex-shrink:0;box-shadow:0 0 8px var(--red);
+  animation:pulse-rec .8s ease-in-out infinite}
+.vrec-timer{font-family:var(--FD);font-size:13px;font-weight:700;color:var(--red);
+  letter-spacing:.08em;min-width:40px}
+.vrec-wave{flex:1;height:24px;display:flex;align-items:center;gap:2px;overflow:hidden}
+.vrec-bar{width:3px;border-radius:2px;background:var(--red);opacity:.7;
+  animation:vrec-bar .6s ease-in-out infinite alternate;flex-shrink:0}
+@keyframes vrec-bar{from{height:4px}to{height:20px}}
+.vrec-stop{width:32px;height:32px;border-radius:8px;background:rgba(248,113,113,.15);
+  border:1px solid rgba(248,113,113,.4);color:var(--red);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.vrec-stop:hover{background:rgba(248,113,113,.3)}
+
+/* ── VOICE PREVIEW (after recording, before sending) ── */
+#voice-preview-bar{
+  display:none;padding:10px 14px;
+  background:linear-gradient(90deg,rgba(91,127,255,.07),rgba(91,127,255,.03));
+  border-top:1px solid rgba(91,127,255,.18);
+  flex-shrink:0;flex-direction:column;gap:8px}
+#voice-preview-bar.active{display:flex}
+.vprev-header{font-size:8px;font-family:var(--FD);color:rgba(91,127,255,.6);
+  letter-spacing:.15em;text-transform:uppercase}
+.vprev-player{display:flex;align-items:center;gap:8px}
+.vprev-play{width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--acc),#4a6aee);border:none;
+  color:#fff;font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .15s;
+  box-shadow:0 2px 10px rgba(91,127,255,.35)}
+.vprev-play:hover{transform:scale(1.08)}
+.vprev-waveform{flex:1;height:28px;background:rgba(91,127,255,.08);
+  border-radius:8px;position:relative;overflow:hidden;cursor:pointer}
+.vprev-progress{position:absolute;top:0;left:0;height:100%;width:0%;
+  background:rgba(91,127,255,.18);border-radius:8px;transition:width .1s linear}
+.vprev-bars{display:flex;align-items:center;height:100%;gap:2px;padding:0 8px}
+.vprev-bar{flex:1;border-radius:2px;background:rgba(91,127,255,.5)}
+.vprev-dur{font-family:var(--FD);font-size:11px;color:var(--acc);
+  font-weight:700;letter-spacing:.06em;min-width:36px;text-align:right}
+.vprev-actions{display:flex;gap:8px}
+.vprev-send{flex:1;padding:10px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--acc),#4a6aee);
+  color:#fff;font-family:var(--FD);font-size:10px;font-weight:700;
+  letter-spacing:.08em;cursor:pointer;transition:all .18s;
+  box-shadow:0 2px 10px rgba(91,127,255,.3)}
+.vprev-send:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(91,127,255,.4)}
+.vprev-discard{flex:1;padding:10px;border-radius:10px;
+  background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);
+  color:var(--red);font-family:var(--FD);font-size:10px;font-weight:700;
+  letter-spacing:.08em;cursor:pointer;transition:all .18s}
+.vprev-discard:hover{background:rgba(248,113,113,.2)}
+
 /* ── FILE ATTACHMENT ── */
 .file-btn{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.06);
   border:1px solid var(--bdr);color:var(--txt);font-size:14px;cursor:pointer;
@@ -1141,6 +1200,32 @@ button,input,[role=button]{touch-action:manipulation}
   </div>
   <div id="msgs"></div>
   <div class="typing-bar" id="typing-bar"></div>
+
+  <!-- VOICE RECORDING BAR (shows while recording) -->
+  <div id="voice-recording-bar">
+    <div class="vrec-pulse"></div>
+    <div class="vrec-timer" id="vrec-timer">0:00</div>
+    <div class="vrec-wave" id="vrec-wave"></div>
+    <button class="vrec-stop" onclick="stopRecording()" title="Stop recording">⏹</button>
+  </div>
+
+  <!-- VOICE PREVIEW BAR (shows after recording, before sending) -->
+  <div id="voice-preview-bar">
+    <div class="vprev-header">🎙 Voice message preview — listen before sending</div>
+    <div class="vprev-player">
+      <button class="vprev-play" id="vprev-play-btn" onclick="previewPlayPause()">▶</button>
+      <div class="vprev-waveform" id="vprev-waveform" onclick="previewSeek(event)">
+        <div class="vprev-progress" id="vprev-progress"></div>
+        <div class="vprev-bars" id="vprev-bars"></div>
+      </div>
+      <div class="vprev-dur" id="vprev-dur">0:00</div>
+    </div>
+    <div class="vprev-actions">
+      <button class="vprev-discard" onclick="discardVoice()">🗑 Discard</button>
+      <button class="vprev-send" onclick="confirmSendVoice()">🚀 Send</button>
+    </div>
+  </div>
+
   <div class="cin">
     <input type="file" id="file-input" style="display:none" onchange="sendFile(this)"/>
     <div class="cinrow">
@@ -3399,59 +3484,189 @@ function renderFullEmojiPicker(bar){
 /* ═══════════════════════════════════════════════════════
    VOICE NOTES
 ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   VOICE RECORDING + PREVIEW
+═══════════════════════════════════════════════════════ */
 let _mediaRecorder=null, _audioChunks=[], _recStart=null, _recTimer=null;
+let _voiceBlob=null, _voiceDuration=0;
+let _previewAudio=null, _previewPlaying=false, _previewInterval=null;
 
 async function toggleRecording(){
-  const btn=document.getElementById('voice-btn');
   if(_mediaRecorder && _mediaRecorder.state==='recording'){
-    _mediaRecorder.stop(); return;
+    stopRecording(); return;
   }
+  // Hide normal input area, show recording bar
   try{
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     _audioChunks=[];
+    // Build animated wave bars
+    const wave=document.getElementById('vrec-wave');
+    wave.innerHTML='';
+    for(let i=0;i<28;i++){
+      const b=document.createElement('div');
+      b.className='vrec-bar';
+      b.style.cssText=`animation-delay:${(i*.04).toFixed(2)}s;height:${4+Math.random()*16}px`;
+      wave.appendChild(b);
+    }
     _mediaRecorder=new MediaRecorder(stream);
-    _mediaRecorder.ondataavailable=e=>_audioChunks.push(e.data);
-    _mediaRecorder.onstop=async()=>{
+    _mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) _audioChunks.push(e.data); };
+    _mediaRecorder.onstop=()=>{
       stream.getTracks().forEach(t=>t.stop());
-      btn.classList.remove('recording'); btn.textContent='🎙';
       clearInterval(_recTimer);
-      const duration=Math.round((Date.now()-_recStart)/1000);
-      const blob=new Blob(_audioChunks,{type:'audio/webm'});
-      await sendVoiceNote(blob,duration);
+      _voiceDuration=Math.max(1,Math.round((Date.now()-_recStart)/1000));
+      _voiceBlob=new Blob(_audioChunks,{type:'audio/webm;codecs=opus'});
+      showVoicePreview();
     };
-    _mediaRecorder.start();
+    _mediaRecorder.start(100); // collect every 100ms for better data
     _recStart=Date.now();
-    btn.classList.add('recording'); btn.textContent='⏹';
+
+    // Show recording bar, hide input row
+    document.getElementById('voice-recording-bar').classList.add('active');
+    document.getElementById('voice-preview-bar').classList.remove('active');
+    document.querySelector('.cinrow').style.opacity='.3';
+    document.querySelector('.cinrow').style.pointerEvents='none';
+
+    // Update timer display
     let secs=0;
     _recTimer=setInterval(()=>{
       secs++;
-      btn.title=`Recording ${secs}s — click to stop`;
-      if(secs>=120){ _mediaRecorder.stop(); } // max 2min
+      const m=Math.floor(secs/60), s=String(secs%60).padStart(2,'0');
+      document.getElementById('vrec-timer').textContent=`${m}:${s}`;
+      if(secs>=120) stopRecording(); // max 2 min
     },1000);
-  }catch(e){ showToast('⚠ Microphone access denied',true); }
+
+    showToast('🎙 Recording… tap ⏹ to stop');
+  }catch(e){
+    showToast('⚠ Microphone access denied',true);
+  }
 }
 
-async function sendVoiceNote(blob, duration){
-  if(!_chatId||!ME) return;
-  // Convert to base64 for storage (works without external file storage)
+function stopRecording(){
+  if(_mediaRecorder && _mediaRecorder.state==='recording'){
+    _mediaRecorder.stop();
+  }
+}
+
+function showVoicePreview(){
+  // Hide recording bar
+  document.getElementById('voice-recording-bar').classList.remove('active');
+
+  if(!_voiceBlob||_voiceBlob.size<500){
+    showToast('⚠ Recording too short, try again',true);
+    discardVoice(); return;
+  }
+
+  // Build waveform bars for preview
+  const bars=document.getElementById('vprev-bars');
+  bars.innerHTML='';
+  const numBars=40;
+  for(let i=0;i<numBars;i++){
+    const b=document.createElement('div');
+    b.className='vprev-bar';
+    const h=20+Math.random()*60; // percentage height
+    b.style.cssText=`height:${h}%;min-width:3px`;
+    bars.appendChild(b);
+  }
+
+  // Set duration
+  const m=Math.floor(_voiceDuration/60), s=String(_voiceDuration%60).padStart(2,'0');
+  document.getElementById('vprev-dur').textContent=`${m}:${s}`;
+
+  // Load audio for preview
+  const url=URL.createObjectURL(_voiceBlob);
+  _previewAudio=new Audio(url);
+  _previewAudio.onended=()=>{
+    _previewPlaying=false;
+    document.getElementById('vprev-play-btn').textContent='▶';
+    document.getElementById('vprev-progress').style.width='0%';
+    clearInterval(_previewInterval);
+  };
+
+  // Show preview bar
+  document.getElementById('voice-preview-bar').classList.add('active');
+  document.querySelector('.cinrow').style.opacity='';
+  document.querySelector('.cinrow').style.pointerEvents='';
+
+  showToast('🎙 Listen to your message before sending');
+}
+
+function previewPlayPause(){
+  const btn=document.getElementById('vprev-play-btn');
+  if(!_previewAudio) return;
+  if(_previewPlaying){
+    _previewAudio.pause();
+    _previewPlaying=false;
+    btn.textContent='▶';
+    clearInterval(_previewInterval);
+  } else {
+    _previewAudio.play();
+    _previewPlaying=true;
+    btn.textContent='⏸';
+    _previewInterval=setInterval(()=>{
+      if(!_previewAudio||!_previewAudio.duration) return;
+      const pct=(_previewAudio.currentTime/_previewAudio.duration)*100;
+      document.getElementById('vprev-progress').style.width=pct+'%';
+      // Update timer
+      const cur=Math.floor(_previewAudio.currentTime);
+      const m=Math.floor(cur/60), s=String(cur%60).padStart(2,'0');
+      document.getElementById('vprev-dur').textContent=`${m}:${s}`;
+    },100);
+  }
+}
+
+function previewSeek(e){
+  if(!_previewAudio||!_previewAudio.duration) return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  _previewAudio.currentTime=pct*_previewAudio.duration;
+  document.getElementById('vprev-progress').style.width=(pct*100)+'%';
+}
+
+function discardVoice(){
+  // Stop any playing preview
+  if(_previewAudio){ _previewAudio.pause(); _previewAudio=null; }
+  _previewPlaying=false; _voiceBlob=null; _voiceDuration=0;
+  clearInterval(_previewInterval);
+  document.getElementById('voice-preview-bar').classList.remove('active');
+  document.getElementById('voice-recording-bar').classList.remove('active');
+  document.querySelector('.cinrow').style.opacity='';
+  document.querySelector('.cinrow').style.pointerEvents='';
+  document.getElementById('vrec-timer').textContent='0:00';
+  showToast('🗑 Voice message discarded');
+}
+
+async function confirmSendVoice(){
+  if(!_voiceBlob||!_chatId||!ME){ discardVoice(); return; }
+  if(_previewAudio){ _previewAudio.pause(); _previewAudio=null; }
+  clearInterval(_previewInterval);
+
+  const blob=_voiceBlob, dur=_voiceDuration;
+  discardVoice(); // clean up UI first
+
+  showToast('📡 Transmitting voice message…');
   const reader=new FileReader();
   reader.onload=async()=>{
     const b64=reader.result;
     const msgData={
       group_id:_chatId, sender_id:ME.id,
       sender_name:ME.name, sender_avatar:ME.avatar,
-      content:b64, msg_type:'voice', voice_duration:duration
+      content:b64, msg_type:'voice', voice_duration:dur
     };
-    appendMessage({...msgData,created_at:new Date().toISOString(),id:'tmp-'+Date.now()},true);
-    await SB.from('messages').insert(msgData);
+    const {data:inserted,error}=await SB.from('messages')
+      .insert(msgData).select().single();
+    if(error){ showToast('⚠ Send failed: '+error.message,true); return; }
+    appendMessage({...inserted},true);
+    showToast('🎙 Voice message sent!');
   };
   reader.readAsDataURL(blob);
 }
 
 function playVoice(src, btn){
+  // Stop any existing preview
+  if(_previewAudio&&_previewPlaying){ previewPlayPause(); }
   const audio=new Audio(src);
   btn.textContent='⏸';
-  audio.play();
+  audio.play().catch(()=>{ btn.textContent='▶'; });
   audio.onended=()=>{ btn.textContent='▶'; };
   audio.onerror=()=>{ btn.textContent='▶'; showToast('⚠ Could not play audio',true); };
 }
