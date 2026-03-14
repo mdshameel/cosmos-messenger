@@ -693,6 +693,67 @@ button,input,[role=button]{touch-action:manipulation}
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
   transition:all .18s;line-height:1}
 .kick-btn:hover{background:rgba(248,113,113,.3);border-color:#f87171}
+
+/* ── PRIVACY TOGGLE ── */
+.privacy-toggle-row{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:rgba(91,127,255,.05);border-radius:12px;
+  border:1px solid rgba(91,127,255,.12)}
+.privacy-toggle-info{flex:1}
+.privacy-toggle-title{font-size:11px;font-weight:600;color:var(--txt);margin-bottom:2px}
+.privacy-toggle-sub{font-size:9px;color:var(--dim);line-height:1.5}
+.toggle-switch{position:relative;width:38px;height:22px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;border-radius:22px;cursor:pointer;
+  background:rgba(91,127,255,.2);border:1px solid rgba(91,127,255,.3);
+  transition:all .28s}
+.toggle-slider::before{content:'';position:absolute;height:16px;width:16px;
+  left:2px;bottom:2px;border-radius:50%;background:var(--dim);
+  transition:transform .28s,background .28s}
+.toggle-switch input:checked + .toggle-slider{background:rgba(91,127,255,.35);
+  border-color:var(--acc)}
+.toggle-switch input:checked + .toggle-slider::before{
+  transform:translateX(16px);background:var(--acc);
+  box-shadow:0 0 8px rgba(91,127,255,.5)}
+
+/* ── REQUEST NOTIFICATION BELL ── */
+#req-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;
+  border-radius:8px;background:var(--gld);color:#000;font-size:8px;font-weight:700;
+  display:none;align-items:center;justify-content:center;padding:0 3px;
+  border:2px solid #000008}
+#req-badge.show{display:flex}
+
+/* ── REQUEST CARDS ── */
+.req-card{background:rgba(91,127,255,.06);border:1px solid rgba(91,127,255,.15);
+  border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;
+  margin-bottom:8px}
+.req-card-hd{display:flex;align-items:center;gap:8px}
+.req-av{width:32px;height:32px;border-radius:50%;background:#0d0d28;
+  border:1.5px solid rgba(91,127,255,.3);display:flex;align-items:center;
+  justify-content:center;font-size:16px;flex-shrink:0}
+.req-info{flex:1}
+.req-title{font-size:11px;color:var(--txt);font-weight:500}
+.req-sub{font-size:9px;color:var(--dim);margin-top:1px}
+.req-btns{display:flex;gap:6px}
+.req-accept{flex:1;padding:8px;border-radius:8px;background:rgba(52,211,153,.12);
+  border:1px solid rgba(52,211,153,.3);color:var(--grn);font-size:11px;font-weight:600;
+  cursor:pointer;transition:all .15s}
+.req-accept:hover{background:rgba(52,211,153,.25)}
+.req-decline{flex:1;padding:8px;border-radius:8px;background:rgba(248,113,113,.08);
+  border:1px solid rgba(248,113,113,.22);color:var(--red);font-size:11px;font-weight:600;
+  cursor:pointer;transition:all .15s}
+.req-decline:hover{background:rgba(248,113,113,.2)}
+
+/* ── REQUESTS PANEL ── */
+#requests-panel{position:fixed;top:56px;left:0;bottom:0;width:280px;z-index:52;
+  background:linear-gradient(180deg,rgba(4,4,22,.99),rgba(2,2,14,.99));
+  border-right:1px solid rgba(251,191,36,.18);
+  display:flex;flex-direction:column;
+  transform:translateX(-100%);transition:transform .3s ease;
+  box-shadow:4px 0 24px rgba(0,0,0,.6)}
+#requests-panel.open{transform:translateX(0)}
+#requests-panel .op-hd{border-bottom-color:rgba(251,191,36,.15);
+  background:rgba(251,191,36,.04)}
+#requests-panel .op-title{color:var(--gld)}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:#141430;border-radius:2px}
 
@@ -1137,6 +1198,10 @@ button,input,[role=button]{touch-action:manipulation}
     <span id="online-count-label" style="font-size:9px">—</span>
     <span id="notif-badge">0</span>
   </button>
+  <button class="tbtn" onclick="toggleRequests()" style="position:relative;gap:6px" title="Requests">
+    <span style="font-size:11px">⭐</span>
+    <span id="req-badge">0</span>
+  </button>
   <!-- Profile -->
   <div class="tb-av-wrap" onclick="openProfile()" title="Edit profile">
     <div class="tb-av" id="tb-av">🧑</div>
@@ -1167,6 +1232,17 @@ button,input,[role=button]{touch-action:manipulation}
   </div>
   <div class="op-scroll" id="op-list">
     <div class="op-empty">No one else online yet.<br>Share a system invite code!</div>
+  </div>
+</div>
+
+<!-- REQUESTS PANEL -->
+<div id="requests-panel">
+  <div class="op-hd">
+    <div class="op-title">⭐ Requests</div>
+    <div class="op-x" onclick="toggleRequests()">×</div>
+  </div>
+  <div class="op-scroll" id="req-list">
+    <div class="op-empty">No pending requests.</div>
   </div>
 </div>
 
@@ -1402,6 +1478,22 @@ button,input,[role=button]{touch-action:manipulation}
     <div class="prof-av-big" id="prof-av-big">🧑</div>
     <div class="prof-avs" id="prof-avs"></div>
     <input class="prof-inp" id="prof-nm" placeholder="Your name…" maxlength="24" autocomplete="off"/>
+    <!-- Privacy toggle -->
+    <div class="privacy-toggle-row">
+      <div class="privacy-toggle-info">
+        <div class="privacy-toggle-title">🔒 Private Mode</div>
+        <div class="privacy-toggle-sub">When ON: name hidden in online panel · others must request permission to DM you · private groups require your approval to join</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="prof-privacy" onchange="updatePrivacyPreview(this.checked)"/>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div id="prof-privacy-status" style="font-size:9px;text-align:center;
+      padding:6px 10px;border-radius:8px;background:rgba(91,127,255,.06);
+      color:var(--dim);font-family:var(--FD);letter-spacing:.06em">
+      🌐 PUBLIC — name visible · open DMs
+    </div>
     <button class="prof-save" onclick="saveProfile()">Save Changes →</button>
     <button class="prof-cancel" onclick="closeProfile()">Cancel</button>
   </div>
@@ -2657,7 +2749,20 @@ function openInfo(id){
     if(isSys){ ja.style.display='none'; }
     else { ja.style.display=''; jb.textContent='💬 Open Chat →'; jb.onclick=()=>openChat(id); }
   } else {
-    ja.style.display=''; jb.textContent=`Join ${isSys?'System':'Group'} →`; jb.onclick=doJoin;
+    ja.style.display='';
+    // Private groups require a join request; public groups join directly
+    const isPrivateGrp = !g.is_public && !isSys;
+    if(isPrivateGrp){
+      jb.textContent='🔔 Request to Join';
+      jb.style.background='linear-gradient(135deg,rgba(251,191,36,.25),rgba(251,191,36,.12))';
+      jb.style.borderColor='rgba(251,191,36,.4)';
+      jb.style.color='rgba(251,191,36,.9)';
+      jb.onclick=sendJoinRequest;
+    } else {
+      jb.textContent=`Join ${isSys?'System':'Group'} →`;
+      jb.style.background=''; jb.style.borderColor=''; jb.style.color='';
+      jb.onclick=doJoin;
+    }
   }
 
   closeChat();
@@ -4516,7 +4621,6 @@ const AVTS_P=['🧑','👩','👨','🧔','👱','🧕','👩‍💻','👨‍�
 
 function openProfile(){
   if(!ME) return;
-  // Populate avatar picker
   const g = document.getElementById('prof-avs');
   g.innerHTML = '';
   AVTS_P.forEach(a=>{
@@ -4532,8 +4636,26 @@ function openProfile(){
   });
   document.getElementById('prof-av-big').textContent = ME.avatar||'🧑';
   document.getElementById('prof-nm').value = ME.name||'';
+  // Set privacy toggle
+  const privBox = document.getElementById('prof-privacy');
+  if(privBox) privBox.checked = ME.privacy==='private';
+  updatePrivacyPreview(ME.privacy==='private');
   document.getElementById('profile-modal').classList.add('on');
   setTimeout(()=>document.getElementById('prof-nm').focus(), 80);
+}
+
+function updatePrivacyPreview(isPrivate){
+  const el=document.getElementById('prof-privacy-status');
+  if(!el) return;
+  if(isPrivate){
+    el.textContent='🔒 PRIVATE — name hidden · DM requests required';
+    el.style.color='rgba(251,191,36,.8)';
+    el.style.background='rgba(251,191,36,.07)';
+  } else {
+    el.textContent='🌐 PUBLIC — name visible · open DMs';
+    el.style.color='rgba(52,211,153,.7)';
+    el.style.background='rgba(52,211,153,.05)';
+  }
 }
 
 function closeProfile(){
@@ -4544,24 +4666,29 @@ async function saveProfile(){
   const name = document.getElementById('prof-nm').value.trim();
   if(!name){ showToast('⚠ Name cannot be empty', true); return; }
   const av = document.querySelector('.prof-av.sel')?.textContent || ME.avatar || '🧑';
-  const oldName = ME.name, oldAv = ME.avatar;
-  ME.name = name; ME.avatar = av;
+  const privBox = document.getElementById('prof-privacy');
+  const privacy = privBox?.checked ? 'private' : 'public';
+  const oldName = ME.name, oldAv = ME.avatar, oldPrivacy = ME.privacy;
+  ME.name = name; ME.avatar = av; ME.privacy = privacy;
   LS.s('cos_me', ME);
 
   // Update topbar
   document.getElementById('tb-av').textContent = av;
   document.getElementById('tb-nm').textContent = name;
 
-  // Update all member records in DB
-  if(SB && (name !== oldName || av !== oldAv)){
+  // Update presence — private users show avatar only, no name
+  if(SB && (name !== oldName || av !== oldAv || privacy !== oldPrivacy)){
     await SB.from('members').update({user_name: name, user_avatar: av}).eq('user_id', ME.id);
-    // Refresh presence so others see new name/avatar
     if(presenceSub){
-      try{ await presenceSub.track({userId:ME.id, name, avatar:av}); }catch(e){}
+      const trackName = privacy==='private' ? '••••' : name;
+      try{ await presenceSub.track({userId:ME.id, name:trackName, avatar:av, privacy}); }catch(e){}
     }
   }
   closeProfile();
-  showToast('✓ Profile updated!');
+  const msg = privacy==='private'
+    ? '🔒 Private mode ON — name hidden, requests required'
+    : '🌐 Public mode — visible to others';
+  showToast(msg);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -4638,6 +4765,191 @@ function resolveSystemCollisions(){
     if(!anyMoved) break;
   }
   if(moved) layoutDirty=true;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PRIVACY & REQUESTS
+═══════════════════════════════════════════════════════ */
+let requestsPanelOpen=false;
+let _pendingRequests=[]; // requests TO me
+
+function toggleRequests(){
+  requestsPanelOpen=!requestsPanelOpen;
+  document.getElementById('requests-panel').classList.toggle('open',requestsPanelOpen);
+  if(requestsPanelOpen){
+    document.body.classList.add('panel-open');
+    renderRequestsList();
+  } else checkPanelOpen();
+}
+
+// ── SEND DM REQUEST to a private user ──
+async function sendDMRequest(user){
+  if(!ME) return;
+  // Check if already sent
+  const {data:existing}=await SB.from('dm_requests')
+    .select('*').eq('from_id',ME.id).eq('to_id',user.userId).single();
+  if(existing){
+    if(existing.status==='pending'){
+      showToast('⭐ Request already sent — waiting for response');
+    } else if(existing.status==='accepted'){
+      openDM(user); // already accepted
+    } else {
+      showToast('⚠ Your previous request was declined',true);
+    }
+    return;
+  }
+  const {error}=await SB.from('dm_requests').insert({
+    from_id:ME.id, from_avatar:ME.avatar,
+    to_id:user.userId, status:'pending'
+  });
+  if(error&&error.code!=='23505'){ showToast('⚠ Request failed',true); return; }
+  showToast('🔔 Request sent — waiting for their approval');
+}
+
+// ── CHECK if DM is allowed (accepted request or self is public) ──
+async function checkDMAllowed(user){
+  if(user.privacy!=='private') return true;
+  const {data}=await SB.from('dm_requests')
+    .select('status').eq('from_id',ME.id).eq('to_id',user.userId).single();
+  return data?.status==='accepted';
+}
+
+// ── SEND JOIN REQUEST for private group ──
+async function sendJoinRequest(){
+  const id=_infoId; if(!id||!ME) return;
+  const g=GROUPS[id]; if(!g) return;
+  const {data:existing}=await SB.from('join_requests')
+    .select('*').eq('target_id',id).eq('requester_id',ME.id).single();
+  if(existing){
+    if(existing.status==='pending') showToast('⭐ Request already sent — waiting for admin');
+    else if(existing.status==='accepted'){ doJoin(); }
+    else showToast('⚠ Your request was declined',true);
+    return;
+  }
+  const {error}=await SB.from('join_requests').insert({
+    target_id:id, target_type:'group',
+    requester_id:ME.id, requester_name:ME.name, requester_avatar:ME.avatar,
+    status:'pending'
+  });
+  if(error&&error.code!=='23505'){showToast('⚠ Request failed: '+error.message,true);return;}
+  showToast('🔔 Join request sent — waiting for admin approval');
+}
+
+// ── LOAD and render pending requests TO me ──
+async function loadMyRequests(){
+  if(!ME||!SB) return;
+  const [dmRes, joinRes]=await Promise.all([
+    SB.from('dm_requests').select('*').eq('to_id',ME.id).eq('status','pending'),
+    SB.from('join_requests').select('*').eq('status','pending')
+  ]);
+  // Filter join requests for groups I created
+  const myGroupIds=Object.values(GROUPS)
+    .filter(g=>g.created_by===ME.id).map(g=>g.id);
+  const joinReqs=(joinRes.data||[]).filter(r=>myGroupIds.includes(r.target_id));
+  _pendingRequests=[
+    ...(dmRes.data||[]).map(r=>({...r,type:'dm'})),
+    ...joinReqs.map(r=>({...r,type:'join'}))
+  ];
+  // Update badge
+  const cnt=_pendingRequests.length;
+  const b=document.getElementById('req-badge');
+  if(b){ b.textContent=cnt>9?'9+':cnt; b.classList.toggle('show',cnt>0); }
+  return cnt;
+}
+
+function renderRequestsList(){
+  const list=document.getElementById('req-list');
+  if(!_pendingRequests.length){
+    list.innerHTML='<div class="op-empty" style="padding:30px 14px">No pending requests.<br><span style="color:rgba(91,127,255,.4);font-size:9px">Requests from others appear here</span></div>';
+    return;
+  }
+  list.innerHTML='';
+  _pendingRequests.forEach(r=>{
+    const card=document.createElement('div');
+    card.className='req-card';
+    card.style.margin='10px 12px 0';
+    if(r.type==='dm'){
+      card.innerHTML=`<div class="req-card-hd">
+        <div class="req-av">${r.from_avatar||'🧑'}</div>
+        <div class="req-info">
+          <div class="req-title">💬 DM Request</div>
+          <div class="req-sub">Someone wants to send you a private message</div>
+        </div>
+      </div>
+      <div class="req-btns">
+        <button class="req-accept" onclick="acceptDMRequest('${r.id}','${r.from_id}','${r.from_avatar||'🧑'}')">✓ Allow</button>
+        <button class="req-decline" onclick="declineRequest('${r.id}','dm_requests')">✕ Decline</button>
+      </div>`;
+    } else {
+      const grp=GROUPS[r.target_id];
+      card.innerHTML=`<div class="req-card-hd">
+        <div class="req-av">${r.requester_avatar||'🧑'}</div>
+        <div class="req-info">
+          <div class="req-title">🪐 Join Request</div>
+          <div class="req-sub">Wants to join <strong style="color:var(--txt)">${esc(grp?.name||'your group')}</strong></div>
+        </div>
+      </div>
+      <div class="req-btns">
+        <button class="req-accept" onclick="acceptJoinRequest('${r.id}','${r.target_id}','${r.requester_id}','${esc(r.requester_name)}','${r.requester_avatar||'🧑'}')">✓ Accept</button>
+        <button class="req-decline" onclick="declineRequest('${r.id}','join_requests')">✕ Decline</button>
+      </div>`;
+    }
+    list.appendChild(card);
+  });
+}
+
+async function acceptDMRequest(reqId, fromId, fromAvatar){
+  await SB.from('dm_requests').update({status:'accepted'}).eq('id',reqId);
+  _pendingRequests=_pendingRequests.filter(r=>r.id!==reqId);
+  renderRequestsList();
+  await loadMyRequests();
+  // Open DM with this person
+  openDM({userId:fromId, avatar:fromAvatar, name:'••••', privacy:'private'});
+  showToast('✓ DM request accepted');
+}
+
+async function acceptJoinRequest(reqId, targetId, userId, userName, userAvatar){
+  // Add member directly
+  const g=GROUPS[targetId];
+  if(!g) return;
+  await SB.from('members').upsert({
+    target_id:targetId, target_type:'group',
+    user_id:userId, user_name:userName, user_avatar:userAvatar
+  },{onConflict:'target_id,user_id',ignoreDuplicates:true});
+  await SB.from('groups').update({member_count:(g.member_count||0)+1}).eq('id',targetId);
+  await SB.from('join_requests').update({status:'accepted'}).eq('id',reqId);
+  _pendingRequests=_pendingRequests.filter(r=>r.id!==reqId);
+  renderRequestsList();
+  await loadMyRequests();
+  showToast(`✓ ${userName} can now join ${g.name}`);
+}
+
+async function declineRequest(reqId, table){
+  await SB.from(table).update({status:'declined'}).eq('id',reqId);
+  _pendingRequests=_pendingRequests.filter(r=>r.id!==reqId);
+  renderRequestsList();
+  await loadMyRequests();
+  showToast('✕ Request declined');
+}
+
+// Subscribe to new requests in real time
+function subscribeToRequests(){
+  if(!ME) return;
+  SB.channel('my-requests')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_requests',
+      filter:`to_id=eq.${ME.id}`},async()=>{
+      await loadMyRequests();
+      showToast('🔔 Someone wants to send you a private message');
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'join_requests'},
+    async(payload)=>{
+      const myGroupIds=Object.values(GROUPS).filter(g=>g.created_by===ME.id).map(g=>g.id);
+      if(myGroupIds.includes(payload.new.target_id)){
+        await loadMyRequests();
+        showToast('🔔 Someone wants to join your group');
+      }
+    })
+    .subscribe();
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -4733,6 +5045,8 @@ async function startUniverse(){
   await loadAll();
   subscribeAll();
   startPresence();
+  loadMyRequests();
+  subscribeToRequests();
   // Notification perm requested after user interaction (openChat)
   setTimeout(()=>{ document.getElementById('hint').style.opacity='0'; },7000);
 }
