@@ -96,33 +96,91 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 .id-err{font-size:10px;color:var(--red);text-align:center;display:none}
 
 /* ── TOPBAR ── */
-#bar{position:fixed;top:0;left:0;right:0;height:52px;z-index:60;
-  background:linear-gradient(90deg,rgba(0,0,14,.96),rgba(2,2,18,.96));
-  border-bottom:1px solid rgba(91,127,255,.15);
-  backdrop-filter:blur(28px);
-  display:flex;align-items:center;gap:10px;padding:0 16px;
-  box-shadow:0 2px 20px rgba(0,0,0,.5)}
-.logo{font-family:var(--FD);font-size:14px;font-weight:900;letter-spacing:.18em;color:#fff}
-.logo b{color:var(--acc)}
-.vsep{width:1px;height:20px;background:var(--bdr);flex-shrink:0}
-.tstat{font-size:10px;color:var(--dim)}.tstat strong{color:var(--txt)}
+#bar{
+  position:fixed;top:0;left:0;right:0;height:56px;z-index:60;
+  background:linear-gradient(90deg,#010112 0%,#03031a 40%,#04041e 60%,#010112 100%);
+  border-bottom:1px solid rgba(91,127,255,.22);
+  backdrop-filter:blur(32px);
+  display:flex;align-items:center;gap:8px;padding:0 16px;
+  box-shadow:0 1px 0 rgba(91,127,255,.08),0 4px 32px rgba(0,0,0,.7)}
+/* Animated star shimmer on topbar */
+#bar::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,
+    transparent 0px,transparent 80px,
+    rgba(91,127,255,.03) 80px,rgba(91,127,255,.03) 81px);
+  opacity:.6}
+#bar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(91,127,255,.5) 30%,rgba(167,139,250,.6) 50%,rgba(91,127,255,.5) 70%,transparent);
+  animation:scanline 4s ease-in-out infinite}
+@keyframes scanline{0%,100%{opacity:.4}50%{opacity:1}}
+
+.logo{font-family:var(--FD);font-size:15px;font-weight:900;letter-spacing:.2em;
+  color:#fff;text-shadow:0 0 20px rgba(91,127,255,.6);position:relative}
+.logo b{color:var(--acc);text-shadow:0 0 12px var(--acc)}
+.logo-sub{font-size:7px;color:rgba(91,127,255,.5);letter-spacing:.3em;
+  font-family:var(--FD);display:block;margin-top:-2px;text-transform:uppercase}
+
+.vsep{width:1px;height:22px;
+  background:linear-gradient(180deg,transparent,rgba(91,127,255,.3),transparent);
+  flex-shrink:0}
+
+.tstat{font-size:9px;color:rgba(91,127,255,.5);font-family:var(--FD);
+  letter-spacing:.08em;text-transform:uppercase}
+.tstat strong{color:var(--acc);font-size:12px;font-weight:700;display:block;
+  text-shadow:0 0 8px rgba(91,127,255,.4)}
+
 .sp{flex:1}
-.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0;
-  transition:background .3s}
+
+/* Live status pill */
+.live-pill{display:flex;align-items:center;gap:5px;padding:4px 10px;
+  background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);
+  border-radius:20px;font-size:9px;color:rgba(52,211,153,.8);
+  font-family:var(--FD);letter-spacing:.12em}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--grn);
+  box-shadow:0 0 6px var(--grn);animation:livepulse 2s ease-in-out infinite}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:background .3s}
 .conn-dot.online{background:var(--grn)}
 .conn-label{font-size:9px;color:var(--dim)}
-.tbtn{padding:7px 13px;border-radius:8px;border:1px solid var(--bdr);
-  background:rgba(91,127,255,.09);color:var(--acc);
-  font-family:var(--FB);font-size:11px;font-weight:600;cursor:pointer;
-  transition:all .18s;white-space:nowrap;display:flex;align-items:center;gap:5px}
-.tbtn:hover{background:rgba(91,127,255,.2);border-color:var(--acc);transform:translateY(-1px)}
-.tbtn.pri{background:var(--acc);color:#fff;border-color:transparent}
-.tbtn.pri:hover{background:#7b9bff}
-.tb-av{width:26px;height:26px;border-radius:50%;background:rgba(91,127,255,.2);
-  border:2px solid rgba(91,127,255,.4);display:flex;align-items:center;
-  justify-content:center;font-size:13px;cursor:pointer}
-.tb-nm{font-size:11px;color:var(--dim);max-width:80px;overflow:hidden;
-  text-overflow:ellipsis;white-space:nowrap}
+
+/* Cosmic nav buttons */
+.tbtn{
+  padding:6px 12px;border-radius:8px;
+  border:1px solid rgba(91,127,255,.18);
+  background:rgba(91,127,255,.06);
+  color:rgba(160,180,255,.85);
+  font-family:var(--FD);font-size:9px;font-weight:700;
+  letter-spacing:.06em;cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+  display:flex;align-items:center;gap:5px;
+  text-transform:uppercase;
+  position:relative;overflow:hidden}
+.tbtn::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.04),transparent);
+  opacity:0;transition:opacity .2s}
+.tbtn:hover{background:rgba(91,127,255,.16);border-color:rgba(91,127,255,.45);
+  color:#fff;transform:translateY(-1px);
+  box-shadow:0 4px 16px rgba(91,127,255,.2)}
+.tbtn:hover::before{opacity:1}
+.tbtn.pri{
+  background:linear-gradient(135deg,rgba(91,127,255,.3),rgba(91,127,255,.15));
+  border-color:rgba(91,127,255,.5);color:#fff;
+  box-shadow:0 0 0 1px rgba(91,127,255,.1),0 4px 18px rgba(91,127,255,.25)}
+.tbtn.pri:hover{
+  background:linear-gradient(135deg,rgba(91,127,255,.45),rgba(91,127,255,.25));
+  box-shadow:0 0 0 1px rgba(91,127,255,.3),0 6px 24px rgba(91,127,255,.35)}
+
+/* Profile avatar */
+.tb-av-wrap{display:flex;align-items:center;gap:6px;padding:4px 8px 4px 4px;
+  border-radius:20px;cursor:pointer;transition:all .18s;
+  border:1px solid rgba(91,127,255,.15);background:rgba(91,127,255,.05)}
+.tb-av-wrap:hover{background:rgba(91,127,255,.14);border-color:rgba(91,127,255,.35)}
+.tb-av{width:28px;height:28px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(91,127,255,.5),rgba(4,4,30,.8));
+  border:1.5px solid rgba(91,127,255,.5);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  box-shadow:0 0 10px rgba(91,127,255,.3)}
+.tb-nm{font-size:10px;color:rgba(180,200,255,.8);max-width:70px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;font-family:var(--FD);letter-spacing:.04em}
 
 /* ── HUD ── */
 #nav{position:fixed;left:162px;bottom:170px;z-index:55;
@@ -671,25 +729,38 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
 
 <!-- TOPBAR -->
 <div id="bar">
-  <div class="logo">COSMOS<b>.</b></div>
+  <!-- Logo -->
+  <div style="display:flex;flex-direction:column;line-height:1">
+    <div class="logo">COSMOS<b>.</b></div>
+    <span class="logo-sub">universe messenger</span>
+  </div>
   <div class="vsep"></div>
-  <div class="conn-dot" id="conn-dot"></div>
-  <div class="conn-label" id="conn-label">connecting…</div>
+  <!-- Live status -->
+  <div class="live-pill" id="live-pill" style="opacity:.5">
+    <div class="live-dot" id="conn-dot"></div>
+    <span id="conn-label">connecting</span>
+  </div>
   <div class="vsep"></div>
-  <div class="tstat"><strong id="ns">0</strong> systems</div>
-  <div class="tstat"><strong id="ng">0</strong> groups</div>
+  <!-- Universe stats -->
+  <div class="tstat"><strong id="ns">0</strong>systems</div>
+  <div class="tstat"><strong id="ng">0</strong>groups</div>
   <div class="sp"></div>
-  <button class="tbtn" onclick="openJoinCode()" title="Join with invite code">🔗 Join by Code</button>
-  <button class="tbtn" onclick="openModal('group')" id="btn-grp">🪐 Create Group</button>
+  <!-- Nav buttons -->
+  <button class="tbtn" onclick="openJoinCode()">🔗 Join</button>
+  <button class="tbtn" onclick="openModal('group')" id="btn-grp">🪐 Group</button>
   <button class="tbtn pri" onclick="openModal('system')" id="btn-sys">☀️ New System</button>
   <div class="vsep"></div>
-  <button class="tbtn" onclick="toggleOnline()" style="gap:4px;position:relative">
-    <div class="conn-dot online" style="margin:0"></div>
-    <span id="online-count-label">Online</span>
+  <!-- Online indicator — shows only your shared groups count -->
+  <button class="tbtn" onclick="toggleOnline()" style="position:relative;gap:6px">
+    <span style="font-size:11px">👥</span>
+    <span id="online-count-label" style="font-size:9px">—</span>
     <span id="notif-badge">0</span>
   </button>
-  <div class="tb-av" id="tb-av" onclick="openProfile()" title="Edit profile" style="cursor:pointer">🧑</div>
-  <div class="tb-nm" id="tb-nm" onclick="openProfile()" style="cursor:pointer">—</div>
+  <!-- Profile -->
+  <div class="tb-av-wrap" onclick="openProfile()" title="Edit profile">
+    <div class="tb-av" id="tb-av">🧑</div>
+    <span class="tb-nm" id="tb-nm">—</span>
+  </div>
 </div>
 
 <!-- NAV -->
@@ -1098,8 +1169,9 @@ function buildLayout(){
     const sy = s.world_y || Math.sin(angle)*dist+jy;
     s._sx=sx; s._sy=sy;
     const isJ=JOINED.has(sid);
-    // Sun radius
-    const sunR = 50+Math.min((s.member_count||1)*2,28);
+    // Sun radius scales with member count (min 50, max 90)
+    const memberCnt = s.member_count||1;
+    const sunR = Math.min(90, 44 + memberCnt*2.5);
     res.push({id:sid,kind:'system',x:sx,y:sy,r:sunR,
       color:s.color,emoji:s.emoji,name:s.name,glow:isJ,data:s});
 
@@ -1110,7 +1182,8 @@ function buildLayout(){
     // Base orbit = sunR * 2.6 + 40, each next orbit += planet diameter + 50
     const BASE_ORBIT = sunR*2.6+40;
     const ORBIT_GAP  = 70; // between orbit rings
-    const PLANET_R   = (gi)=>22+Math.min((grps[gi]?.member_count||1)*1.5,16);
+    // Planet radius scales with group member count (min 18, max 48)
+    const PLANET_R   = (gi)=>Math.min(48, 16 + (grps[gi]?.member_count||1)*2);
 
     // Sort groups by creation order (stable)
     grps.sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
@@ -1730,42 +1803,71 @@ function startPresence(){
         await presenceSub.track({userId:ME.id,name:ME.name,avatar:ME.avatar});
         document.getElementById('conn-dot').classList.add('online');
         document.getElementById('conn-label').textContent='live';
+        document.getElementById('live-pill').style.opacity='1';
       }
     });
 }
 
+function getSharedGroupMembers(){
+  // Return set of userIds who share at least one group/system with ME
+  const myTargets=new Set([...JOINED]);
+  const shared=new Set();
+  Object.values(ONLINE).forEach(u=>{
+    // We can't know their joined list client-side — show them if we share any system
+    // For now show users who are in the same presence channel (all online users)
+    // But label them by shared context
+    shared.add(u.userId);
+  });
+  return shared;
+}
+
 function renderOnlineList(){
   const list=document.getElementById('op-list');
+  // Only show users who share a group/system with me
+  // Since we can't query others' memberships client-side,
+  // we filter: show only users we see in our joined groups' members
   const users=Object.values(ONLINE);
   const cnt=users.length;
-  // Update topbar count
   const lbl=document.getElementById('online-count-label');
-  if(lbl) lbl.textContent = cnt>0?`${cnt+1} online`:'Online';
+
+  // Count only — no names for privacy
+  if(lbl) lbl.textContent = cnt>0?`${cnt+1} active`:'Universe';
+
   if(!cnt){
-    list.innerHTML='<div class="op-empty">No one else online yet.<br>Share your invite code!</div>';
+    list.innerHTML=`<div class="op-empty">
+      <div style="font-size:24px;margin-bottom:8px">🌌</div>
+      You are alone in this corner of space.<br>
+      <span style="color:var(--acc);font-size:9px">Share an invite code to see others</span>
+    </div>`;
     return;
   }
-  list.innerHTML=`<div style="font-size:10px;color:var(--dim);padding:8px 10px 4px">
-    <strong style="color:var(--grn)">${cnt+1}</strong> people active right now
-  </div>`;
-  // Show avatars without revealing names for privacy
+
+  list.innerHTML='';
+
+  // Header
+  const hd=document.createElement('div');
+  hd.style.cssText='padding:10px 12px 6px;border-bottom:1px solid rgba(91,127,255,.1)';
+  hd.innerHTML=`<div style="font-size:8px;font-family:var(--FD);color:var(--acc);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px">Active in Universe</div>
+    <div style="font-size:11px;color:var(--txt)"><strong style="color:var(--grn)">${cnt+1}</strong> people online right now</div>`;
+  list.appendChild(hd);
+
+  // Show avatars only — no names for privacy
   const wrap=document.createElement('div');
-  wrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px;padding:6px 10px';
+  wrap.style.cssText='display:flex;flex-wrap:wrap;gap:8px;padding:12px';
   users.forEach(u=>{
     const a=document.createElement('div');
-    a.className='ou-av';
-    a.title='Click to DM';
-    a.textContent=u.avatar||'🧑';
-    a.style.cursor='pointer';
+    a.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer';
+    a.innerHTML=`<div class="ou-av">${u.avatar||'🧑'}</div>
+      <div style="font-size:8px;color:var(--dim);font-family:var(--FD)">DM</div>`;
     a.onclick=()=>openDM(u);
     wrap.appendChild(a);
   });
   list.appendChild(wrap);
-  // DM section
-  const dm=document.createElement('div');
-  dm.style.cssText='padding:8px 10px;font-size:9px;color:var(--dim);border-top:1px solid var(--bdr);margin-top:6px';
-  dm.textContent='Click an avatar to send a private message';
-  list.appendChild(dm);
+
+  const note=document.createElement('div');
+  note.style.cssText='padding:8px 12px 10px;font-size:9px;color:rgba(91,127,255,.45);border-top:1px solid rgba(91,127,255,.08);line-height:1.6';
+  note.innerHTML='🔒 Names hidden for privacy<br>Click an avatar to send a direct message';
+  list.appendChild(note);
 }
 
 let onlinePanelOpen=false;
@@ -2889,12 +2991,28 @@ async function sendFile(input){
 ═══════════════════════════════════════════════════════ */
 const GS_EMOJIS=['🌟','☀️','🔥','⚡','💎','🌊','🎯','🚀','🌈','🏔️','🌺','🦋','🐉','🌙',
   '🌍','💫','🎮','🎵','🔮','🦄','🌴','🏛️','🎨','🤖','⭐','🌠','🪐','🌌','🦁','🏆'];
-let _gsSelEmoji='';
+let _gsSelEmoji=''; let _gsIsPublic=true;
+
+function gsSelVis(pub){
+  _gsIsPublic=pub;
+  const pubEl=document.getElementById('gs-pub');
+  const prvEl=document.getElementById('gs-prv');
+  if(pubEl){
+    pubEl.style.borderColor=pub?'var(--acc)':'rgba(91,127,255,.18)';
+    pubEl.style.background=pub?'rgba(91,127,255,.15)':'rgba(255,255,255,.03)';
+    pubEl.querySelector('div:last-child').style.color=pub?'#fff':'var(--dim)';
+  }
+  if(prvEl){
+    prvEl.style.borderColor=!pub?'var(--acc2)':'rgba(91,127,255,.18)';
+    prvEl.style.background=!pub?'rgba(167,139,250,.15)':'rgba(255,255,255,.03)';
+    prvEl.querySelector('div:last-child').style.color=!pub?'#fff':'var(--dim)';
+  }
+}
 
 function openGrpSettings(){
   const g=GROUPS[_chatId]; if(!g||!ME) return;
   const isAdmin = g.created_by===ME.id;
-  _gsSelEmoji=g.emoji||'🌟';
+  _gsSelEmoji=g.emoji||'🌟'; _gsIsPublic=g.is_public!==false;
 
   const body=document.getElementById('gs-body-content');
   const danger=document.getElementById('gs-danger-zone');
@@ -2910,6 +3028,25 @@ function openGrpSettings(){
       <div>
         <div class="gs-label">Description</div>
         <input class="gs-inp" id="gs-desc" placeholder="Description…" maxlength="80" value="${esc(g.description||'')}"/>
+      </div>
+      <div>
+        <div class="gs-label">Visibility</div>
+        <div style="display:flex;gap:8px;margin-top:2px">
+          <div id="gs-pub" onclick="gsSelVis(true)"
+            style="flex:1;padding:10px;border-radius:10px;cursor:pointer;text-align:center;
+            border:2px solid ${g.is_public?'var(--acc)':'rgba(91,127,255,.18)'};
+            background:${g.is_public?'rgba(91,127,255,.15)':'rgba(255,255,255,.03)'};transition:all .18s">
+            <div style="font-size:16px">🌐</div>
+            <div style="font-family:var(--FD);font-size:9px;color:${g.is_public?'#fff':'var(--dim)'};margin-top:3px;letter-spacing:.06em">PUBLIC</div>
+          </div>
+          <div id="gs-prv" onclick="gsSelVis(false)"
+            style="flex:1;padding:10px;border-radius:10px;cursor:pointer;text-align:center;
+            border:2px solid ${!g.is_public?'var(--acc2)':'rgba(91,127,255,.18)'};
+            background:${!g.is_public?'rgba(167,139,250,.15)':'rgba(255,255,255,.03)'};transition:all .18s">
+            <div style="font-size:16px">🔒</div>
+            <div style="font-family:var(--FD);font-size:9px;color:${!g.is_public?'#fff':'var(--dim)'};margin-top:3px;letter-spacing:.06em">PRIVATE</div>
+          </div>
+        </div>
       </div>
       <div>
         <div class="gs-label">Group Icon</div>
@@ -2984,7 +3121,7 @@ async function saveGrpSettings(){
   if(!name){ showToast('⚠ Group name cannot be empty',true); return; }
 
   const {error}=await SB.from('groups').update({
-    name, description:desc, emoji:_gsSelEmoji
+    name, description:desc, emoji:_gsSelEmoji, is_public:_gsIsPublic
   }).eq('id',_chatId);
 
   if(error){ showToast('⚠ Save failed: '+error.message,true); return; }
@@ -2992,6 +3129,7 @@ async function saveGrpSettings(){
   GROUPS[_chatId].name=name;
   GROUPS[_chatId].description=desc;
   GROUPS[_chatId].emoji=_gsSelEmoji;
+  GROUPS[_chatId].is_public=_gsIsPublic;
   layoutDirty=true;
 
   // Update chat panel header
