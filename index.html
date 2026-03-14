@@ -287,7 +287,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
   background:rgba(91,127,255,.1);color:var(--acc);font-size:10px;cursor:pointer;
   transition:all .18s;white-space:nowrap}
 .inv-copy:hover{background:rgba(91,127,255,.25)}
-.inv-label{font-size:8px;color:var(--dim);text-align:center;margin:-5px 13px 5px;
+.inv-label{font-size:8px;color:var(--dim);text-align:center;margin:10px 13px 0;
   font-family:var(--FD);letter-spacing:.1em;text-transform:uppercase;flex-shrink:0}
 
 .psec{padding:10px 13px;border-bottom:1px solid var(--bdr);flex-shrink:0}
@@ -808,10 +808,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
     <div class="sc"><span class="scv" id="p-msg">0</span><div class="scl">Messages</div></div>
     <div class="sc"><span class="scv" id="p-grps">0</span><div class="scl">Groups</div></div>
   </div>
-  <div class="inv-label" id="inv-label-top">INVITE CODE</div>
-  <div class="inv-box" id="inv-box">
-    <div class="inv-code" id="inv-code">—</div>
-    <button class="inv-copy" onclick="copyCode()">📋 Copy</button>
+  <div class="inv-box" id="inv-box" style="flex-direction:column;gap:6px">
+    <div style="font-size:7px;color:rgba(91,127,255,.5);font-family:var(--FD);letter-spacing:.18em;text-transform:uppercase;text-align:center">Invite Code</div>
+    <div style="display:flex;align-items:center;gap:8px;width:100%">
+      <div class="inv-code" id="inv-code">—</div>
+      <button class="inv-copy" onclick="copyCode()">📋 Copy</button>
+    </div>
   </div>
   <div class="psec">
     <div class="psec-t">Members</div>
