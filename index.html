@@ -211,7 +211,7 @@ button,input,[role=button]{touch-action:manipulation}
 
 /* ── ONLINE PANEL (left sidebar) ── */
 #online-panel{
-  position:fixed;top:56px;left:0;bottom:0;width:220px;z-index:50;
+  position:fixed;top:56px;left:0;bottom:0;width:260px;z-index:50;
   background:rgba(3,3,18,.95);border-right:1px solid var(--bdr);
   display:flex;flex-direction:column;
   transform:translateX(-100%);transition:transform .3s ease;
@@ -527,9 +527,12 @@ button,input,[role=button]{touch-action:manipulation}
   scrollbar-width:thin;scrollbar-color:#141430 transparent}
 
 /* DM cinrow accent purple */
-#dm-panel .cinrow{border-color:rgba(167,139,250,.2)}
+#dm-panel .cinrow{border-color:rgba(167,139,250,.2);background:rgba(167,139,250,.04)}
 #dm-panel .cinrow:focus-within{border-color:rgba(167,139,250,.5);
-  box-shadow:0 2px 20px rgba(167,139,250,.1)}
+  box-shadow:0 2px 20px rgba(167,139,250,.1);background:rgba(167,139,250,.07)}
+#dm-ci{flex:1;background:transparent;border:none;outline:none;
+  color:var(--txt);font-family:var(--FB);font-size:13px}
+#dm-ci::placeholder{color:rgba(120,100,180,.55)}
 
 /* ── JOIN BY CODE ── */
 #jcode-modal{
@@ -1382,7 +1385,7 @@ button,input,[role=button]{touch-action:manipulation}
     <div class="cinrow">
       <button class="file-btn" onclick="document.getElementById('dm-file-input').click()" title="Send file">📎</button>
       <button class="voice-btn" id="dm-voice-btn" onclick="toggleDMRecording()" title="Voice note">🎙</button>
-      <input id="dm-ci" placeholder="Private message…" autocomplete="off" maxlength="2000" style="color:var(--txt)"/>
+      <input id="dm-ci" placeholder="Private message…" autocomplete="off" maxlength="2000"/>
       <button class="add-reaction" onclick="toggleDMEmojiBar()" title="Emoji">😊</button>
       <button id="dm-send">
         <svg viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
@@ -2506,22 +2509,50 @@ function renderOnlineList(){
     <div style="font-size:11px;color:var(--txt)"><strong style="color:var(--grn)">${cnt+1}</strong> people online right now</div>`;
   list.appendChild(hd);
 
-  // Show avatars only — no names for privacy
+  // Show first name only — enough to identify, not enough to track
   const wrap=document.createElement('div');
-  wrap.style.cssText='display:flex;flex-wrap:wrap;gap:8px;padding:12px';
+  wrap.style.cssText='display:flex;flex-direction:column;gap:4px;padding:8px 10px';
   users.forEach(u=>{
-    const a=document.createElement('div');
-    a.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer';
-    a.innerHTML=`<div class="ou-av">${u.avatar||'🧑'}</div>
-      <div style="font-size:8px;color:var(--dim);font-family:var(--FD)">DM</div>`;
-    a.onclick=()=>openDM(u);
-    wrap.appendChild(a);
+    // Show first name only for identification (not full name)
+    const firstName=(u.name||'Traveller').split(' ')[0];
+    const card=document.createElement('div');
+    card.style.cssText=`display:flex;align-items:center;gap:10px;padding:9px 10px;
+      border-radius:11px;cursor:pointer;
+      background:rgba(91,127,255,.05);border:1px solid rgba(91,127,255,.1);
+      transition:all .18s`;
+    card.onmouseover=()=>card.style.background='rgba(91,127,255,.14)';
+    card.onmouseout=()=>card.style.background='rgba(91,127,255,.05)';
+    card.innerHTML=`
+      <div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;
+        background:radial-gradient(circle at 35% 35%,rgba(91,127,255,.4),rgba(4,4,30,.9));
+        border:2px solid rgba(52,211,153,.4);
+        display:flex;align-items:center;justify-content:center;font-size:18px;
+        box-shadow:0 0 10px rgba(52,211,153,.15),0 2px 6px rgba(0,0,0,.4);
+        position:relative">
+        ${u.avatar||'🧑'}
+        <div style="position:absolute;bottom:0;right:0;width:9px;height:9px;
+          border-radius:50%;background:var(--grn);border:2px solid #04040e;
+          box-shadow:0 0 5px var(--grn)"></div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;color:var(--txt);
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(firstName)}</div>
+        <div style="font-size:9px;color:var(--grn);font-family:var(--FD);
+          letter-spacing:.06em">● ONLINE</div>
+      </div>
+      <div style="padding:5px 10px;border-radius:8px;background:rgba(91,127,255,.12);
+        border:1px solid rgba(91,127,255,.22);color:var(--acc);font-size:9px;
+        font-family:var(--FD);letter-spacing:.06em;cursor:pointer;flex-shrink:0">
+        ✉ MSG
+      </div>`;
+    card.onclick=()=>openDM(u);
+    wrap.appendChild(card);
   });
   list.appendChild(wrap);
 
   const note=document.createElement('div');
-  note.style.cssText='padding:8px 12px 10px;font-size:9px;color:rgba(91,127,255,.45);border-top:1px solid rgba(91,127,255,.08);line-height:1.6';
-  note.innerHTML='🔒 Names hidden for privacy<br>Click an avatar to send a direct message';
+  note.style.cssText='padding:6px 12px 10px;font-size:9px;color:rgba(91,127,255,.35);line-height:1.7;border-top:1px solid rgba(91,127,255,.07);margin-top:2px';
+  note.innerHTML='🔒 First name only shown · Full identity protected';
   list.appendChild(note);
 }
 
