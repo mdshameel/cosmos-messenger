@@ -481,9 +481,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000008;font-family:
   border:1px solid var(--bdr);font-size:11px;cursor:pointer;display:flex;
   align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
 .add-reaction:hover{background:rgba(91,127,255,.18)}
-.emoji-picker{position:absolute;background:#0a0a22;border:1px solid var(--bdr);
-  border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:4px;
-  z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.8);width:200px}
+.emoji-picker{position:fixed;background:#07071e;border:1px solid var(--bdr);
+  border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:3px;
+  z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.9);width:280px;max-height:200px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:#141430 transparent}
 .ep-em{width:28px;height:28px;border-radius:7px;font-size:16px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   background:transparent;border:none;transition:background .12s}
@@ -2247,7 +2248,8 @@ document.addEventListener('visibilitychange',()=>{
 /* ═══════════════════════════════════════════════════════
    EMOJI REACTIONS
 ═══════════════════════════════════════════════════════ */
-const REACT_EMOJIS=['👍','❤️','😂','😮','😢','🔥','🎉','👏','🚀','✨'];
+const ALL_EMOJI_CATEGORIES = {"😀 Smileys": ["😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "😚", "😙", "🥲", "😋", "😛", "😜", "🤪", "😝", "🤑", "🤗", "🤭", "🤫", "🤔", "🤐", "🤨", "😐", "😑", "😶", "😏", "😒", "🙄", "😬", "🤥", "😌", "😔", "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥵", "🥶", "🥴", "😵", "🤯", "🤠", "🥸", "😎", "🤓", "🧐", "😕", "😟", "🙁", "☹️", "😮", "😯", "😲", "😳", "🥺", "😦", "😧", "😨", "😰", "😥", "😢", "😭", "😱", "😖", "😣", "😞", "😓", "😩", "😫", "🥱", "😤", "😡", "😠", "🤬", "😈", "👿", "💀", "☠️", "💩", "🤡", "👹", "👺", "👻", "👽", "👾", "🤖"], "👋 People": ["👋", "🤚", "🖐", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪", "🦾", "🦿", "🦵", "🦶", "👂", "🦻", "👃", "🫀", "🫁", "🧠", "🦷", "🦴", "👀", "👁", "👅", "👄", "💋"], "❤️ Hearts": ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "☮️", "✝️", "☯️", "🕉", "✡️", "🔯", "🛐", "⛎", "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"], "🎉 Celebration": ["🎉", "🎊", "🎈", "🎁", "🎀", "🎗", "🎟", "🎫", "🏆", "🥇", "🥈", "🥉", "🏅", "🎖", "🏵", "🎗", "🎪", "🎭", "🎨", "🎬", "🎤", "🎧", "🎼", "🎵", "🎶", "🎷", "🎸", "🎹", "🎺", "🎻", "🥁", "🪘", "🎮", "🕹", "👾", "🎲", "♟", "🎯", "🎱", "🎳", "🏓", "🏸", "🥊", "🥋", "⛳", "🏹", "🎣", "🤿", "🎽", "🎿", "🛷", "🥌"], "🐶 Animals": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐵", "🙈", "🙉", "🙊", "🐒", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞", "🐜", "🦟", "🦗", "🕷", "🦂", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡", "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🦣", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🦬", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🦮", "🐕\u200d🦺", "🐈", "🐈\u200d⬛", "🪶", "🐓", "🦃", "🦤", "🦚", "🦜", "🦢", "🦩", "🕊", "🐇", "🦝", "🦨", "🦡", "🦫", "🦦", "🦥", "🐁", "🐀", "🐿", "🦔"], "🌍 Nature": ["🌱", "🌿", "☘️", "🍀", "🎍", "🎋", "🍃", "🍂", "🍁", "🍄", "🐚", "🪸", "🪨", "🌾", "💐", "🌷", "🌹", "🥀", "🌺", "🌸", "🌼", "🌻", "🌞", "🌝", "🌛", "🌜", "🌚", "🌕", "🌖", "🌗", "🌘", "🌑", "🌒", "🌓", "🌔", "🌙", "🌟", "💫", "⭐", "✨", "🌈", "⚡", "🌪", "🌈", "❄️", "🌊", "💧", "💦", "🔥", "🌋", "🌀", "🌫", "🌦", "⛈", "🌧", "🌩", "🌨", "☁️", "⛅", "🌤", "☀️", "🌡", "🌠", "🌉", "🌌", "🌃", "🏙", "🌆", "🌇", "🌅", "🌄", "🌠"], "🍕 Food": ["🍕", "🍔", "🌮", "🌯", "🥙", "🧆", "🥚", "🍳", "🥘", "🍲", "🥗", "🥫", "🧂", "🧀", "🍞", "🥐", "🥖", "🫓", "🥨", "🥞", "🧇", "🧈", "🍗", "🍖", "🌭", "🥓", "🍟", "🧁", "🍰", "🎂", "🍮", "🍭", "🍬", "🍫", "🍿", "🍩", "🍪", "🌰", "🥜", "🫘", "🍯", "🍺", "🍻", "🥂", "🍷", "🥃", "🍸", "🍹", "🧃", "🥤", "🧋", "☕", "🫖", "🍵", "🧊", "🥛", "🍼", "🫗", "🍶", "🍾"], "⚽ Sports": ["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🏓", "🏸", "🥊", "🥋", "🥅", "⛳", "🏹", "🎣", "🤿", "🎽", "🎿", "🛷", "🥌", "🪃", "🪁", "🛹", "🛼", "🛻", "🏋️", "🤸", "⛹️", "🤺", "🏇", "🧘", "🏄", "🏊", "🚴", "🏆", "🥇", "🥈", "🥉", "🏅", "🎖", "🏵"], "🚀 Travel": ["🚀", "✈️", "🛸", "🚁", "🛶", "⛵", "🚢", "🛥", "⛴", "🚤", "🛳", "🚂", "🚃", "🚄", "🚅", "🚆", "🚇", "🚈", "🚉", "🚊", "🚞", "🚝", "🚋", "🚌", "🚍", "🚎", "🏎", "🚐", "🚑", "🚒", "🚓", "🚔", "🚕", "🚖", "🚗", "🚘", "🚙", "🛻", "🚚", "🚛", "🚜", "🏍", "🛵", "🛺", "🚲", "🛴", "🛹", "🛼", "🚏", "🛣", "🗺", "🏔", "⛰", "🌋", "🗻", "🏕", "🏖", "🏜", "🏝", "🏞", "🏟", "🏛", "🏗", "🏘", "🏚", "🏠", "🏡", "🏢", "🏣", "🏤", "🏥", "🏦", "🏨", "🏩", "🏪", "🏫", "🏬", "🏭", "🏯", "🏰", "💒", "🗼", "🗽"], "💡 Objects": ["💡", "🔦", "🕯", "🪔", "💰", "💴", "💵", "💶", "💷", "💸", "💳", "🧾", "💹", "✉️", "📧", "📨", "📩", "📪", "📫", "📬", "📭", "📮", "🗳", "✏️", "✒️", "🖋", "🖊", "📝", "📁", "📂", "🗂", "📅", "📆", "🗒", "🗓", "📇", "📈", "📉", "📊", "📋", "📌", "📍", "✂️", "🗃", "🗄", "🗑", "🔒", "🔓", "🔏", "🔐", "🔑", "🗝", "🔨", "🪓", "⛏", "⚒", "🛠", "🗡", "⚔️", "🔫", "🪃", "🏹", "🛡", "🔧", "🔩", "⚙️", "🗜", "⚖️", "🦯", "🔗", "⛓", "🪝", "🧲", "🪜", "🧰", "🪛", "🔬", "🔭", "📡", "💉", "🩸", "💊", "🩹", "🩺", "🚪", "🛗", "🪞", "🪟", "🛏", "🛋", "🚽", "🪠", "🚿", "🛁", "🪤", "🧴", "🧷", "🧹", "🧺", "🧻", "🪣", "🧼", "🪥", "🧽", "🧯", "🛒", "🚬", "⚰️", "🪦", "⚱️", "🏺", "🔮", "🧿", "🪬", "💈", "⚗️", "🔭", "📺", "📻", "🧭", "⏱", "⌚", "⏰", "⏲", "🕰", "⌛", "⏳", "📡"], "🎨 Symbols": ["❤️", "🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "⚫", "⚪", "🟤", "🔺", "🔻", "🔷", "🔶", "🔹", "🔸", "🔲", "🔳", "▪️", "▫️", "◾", "◽", "◼️", "◻️", "⬛", "⬜", "🔱", "📛", "🔰", "♻️", "✅", "❎", "🆗", "🆙", "🆒", "🆕", "🆓", "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "🔠", "🔡", "🔢", "🔣", "🔤", "🅰️", "🅱️", "🆎", "🆑", "🅾️", "🆘", "❌", "⭕", "🛑", "⛔", "📵", "🚫", "💯", "💢", "♨️", "🚷", "📵", "🔞", "🔕", "🔇", "📳", "📴", "📵", "🔒", "🔓"]};
+const REACT_EMOJIS=['👍','❤️','😂','😮','😢','🔥','🎉','👏','🚀','✨','😀','😍','🥰','😎','🤩','😭','😱','🤯','🥳','💯','✅','🔥','💫','⭐','🌟','🎯','💪','🙏','👀','🫶'];
 let _reactionPicker=null;
 
 function showReactionPicker(e, msgId, msgEl){
@@ -2256,11 +2258,15 @@ function showReactionPicker(e, msgId, msgEl){
   const p=document.createElement('div');
   p.className='emoji-picker';
   p.style.cssText=`top:${e.clientY-60}px;left:${Math.min(e.clientX,window.innerWidth-220)}px`;
-  REACT_EMOJIS.forEach(em=>{
-    const b=document.createElement('button');
-    b.className='ep-em'; b.textContent=em;
-    b.onclick=()=>{ addReaction(msgId,em,msgEl); closeReactionPicker(); };
-    p.appendChild(b);
+  // Show all reaction emojis in a scrollable grid
+  const cats=Object.keys(ALL_EMOJI_CATEGORIES);
+  cats.forEach(cat=>{
+    ALL_EMOJI_CATEGORIES[cat].forEach(em=>{
+      const b=document.createElement('button');
+      b.className='ep-em'; b.textContent=em;
+      b.onclick=()=>{ addReaction(msgId,em,msgEl); closeReactionPicker(); };
+      p.appendChild(b);
+    });
   });
   document.body.appendChild(p);
   _reactionPicker=p;
@@ -2310,19 +2316,56 @@ function renderReactions(msgId, msgEl){
 function toggleEmojiBar(){
   const bar=document.getElementById('emoji-bar');
   if(bar.style.display==='none'||!bar.style.display){
+    renderFullEmojiPicker(bar);
     bar.style.display='flex';
-    bar.innerHTML='';
-    REACT_EMOJIS.forEach(em=>{
+    bar.style.flexDirection='column';
+  } else {
+    bar.style.display='none';
+  }
+}
+
+function renderFullEmojiPicker(bar){
+  bar.innerHTML='';
+  bar.style.cssText='display:flex;flex-direction:column;background:#07071e;border-top:1px solid var(--bdr);max-height:260px;overflow:hidden';
+
+  // Category tabs
+  const tabs=document.createElement('div');
+  tabs.style.cssText='display:flex;overflow-x:auto;gap:2px;padding:6px 6px 4px;border-bottom:1px solid var(--bdr);flex-shrink:0;scrollbar-width:none';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:flex;flex-wrap:wrap;gap:3px;padding:7px;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:#141430 transparent';
+
+  const cats=Object.keys(ALL_EMOJI_CATEGORIES);
+  let activeTab=cats[0];
+
+  function showCat(cat){
+    activeTab=cat;
+    grid.innerHTML='';
+    tabs.querySelectorAll('.etab').forEach(t=>t.style.background=t.dataset.cat===cat?'rgba(91,127,255,.3)':'rgba(255,255,255,.05)');
+    ALL_EMOJI_CATEGORIES[cat].forEach(em=>{
       const b=document.createElement('button');
       b.className='ep-em'; b.textContent=em;
       b.onclick=()=>{
         const ci=document.getElementById('ci');
         ci.value+=em; ci.focus();
-        bar.style.display='none';
       };
-      bar.appendChild(b);
+      grid.appendChild(b);
     });
-  } else { bar.style.display='none'; }
+  }
+
+  cats.forEach(cat=>{
+    const tab=document.createElement('button');
+    tab.className='etab';
+    tab.dataset.cat=cat;
+    tab.textContent=cat.split(' ')[0]; // just the emoji part
+    tab.title=cat;
+    tab.style.cssText='padding:5px 7px;border-radius:7px;background:rgba(255,255,255,.05);border:none;font-size:16px;cursor:pointer;flex-shrink:0;transition:background .15s';
+    tab.onclick=()=>showCat(cat);
+    tabs.appendChild(tab);
+  });
+
+  bar.appendChild(tabs);
+  bar.appendChild(grid);
+  showCat(activeTab);
 }
 
 /* ═══════════════════════════════════════════════════════
