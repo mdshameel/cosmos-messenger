@@ -493,12 +493,43 @@ button,input,[role=button]{touch-action:manipulation}
 #csend svg{width:13px;height:13px;fill:#fff}
 
 /* ── DM PANEL ── */
-#dm-panel{position:fixed;top:56px;right:0;bottom:0;width:380px;
-  background:var(--panel);border-left:1px solid var(--bdr);
+#dm-panel{position:fixed;top:56px;right:0;bottom:0;width:390px;
+  background:linear-gradient(180deg,rgba(4,4,22,.99) 0%,rgba(2,2,14,.99) 100%);
+  border-left:1px solid rgba(91,127,255,.18);
   display:flex;flex-direction:column;z-index:51;
-  transform:translateX(100%);transition:transform .36s cubic-bezier(.3,.72,0,1);
-  box-shadow:-14px 0 48px rgba(0,0,0,.85)}
+  transform:translateX(100%);transition:transform .38s cubic-bezier(.22,.72,0,1);
+  box-shadow:-20px 0 60px rgba(0,0,8,.95),-2px 0 0 rgba(91,127,255,.06)}
 #dm-panel.open{transform:translateX(0)}
+
+/* DM avatar bubble in header */
+#dm-panel .ph{
+  background:linear-gradient(135deg,rgba(167,139,250,.1) 0%,rgba(91,127,255,.04) 100%);
+  border-bottom:1px solid rgba(167,139,250,.15)}
+#dm-avatar-ring{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  background:radial-gradient(circle at 35% 35%,rgba(167,139,250,.4),rgba(4,4,30,.9));
+  border:2px solid rgba(167,139,250,.4);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 0 16px rgba(167,139,250,.25),0 2px 8px rgba(0,0,0,.4)}
+
+/* DM send button — matches #csend */
+#dm-send{width:32px;height:32px;border-radius:10px;
+  background:linear-gradient(135deg,var(--acc2),#8b5cf6);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .18s;flex-shrink:0;
+  box-shadow:0 2px 10px rgba(167,139,250,.4)}
+#dm-send:hover{background:linear-gradient(135deg,#c4b5fd,#a78bfa);transform:scale(1.06)}
+#dm-send:active{transform:scale(.9)}
+#dm-send svg{width:13px;height:13px;fill:#fff}
+
+/* DM messages area scrollable */
+#dm-msgs{flex:1;overflow-y:auto;padding:10px 13px;
+  scrollbar-width:thin;scrollbar-color:#141430 transparent}
+
+/* DM cinrow accent purple */
+#dm-panel .cinrow{border-color:rgba(167,139,250,.2)}
+#dm-panel .cinrow:focus-within{border-color:rgba(167,139,250,.5);
+  box-shadow:0 2px 20px rgba(167,139,250,.1)}
 
 /* ── JOIN BY CODE ── */
 #jcode-modal{
@@ -1308,23 +1339,25 @@ button,input,[role=button]{touch-action:manipulation}
 <div id="dm-panel">
   <!-- Header -->
   <div class="ph">
-    <div class="ph-ico" id="dm-ico" style="font-size:28px">🧑</div>
+    <div id="dm-avatar-ring" id="dm-ico-wrap">
+      <span id="dm-ico">🧑</span>
+    </div>
     <div style="flex:1">
-      <div class="ph-nm" id="dm-nm">Direct Message</div>
-      <div class="ph-sb" id="dm-sb">🔒 Private · only you two can see this</div>
+      <div class="ph-nm" id="dm-nm" style="color:rgba(200,180,255,.95)">Private Chat</div>
+      <div class="ph-sb" id="dm-sb" style="color:rgba(167,139,250,.5)">🔒 Only you two can see this</div>
     </div>
     <div class="ph-actions">
       <button class="ph-x" onclick="closeDM()">×</button>
     </div>
   </div>
   <!-- Info bar -->
-  <div class="chat-info-bar">
-    <span class="lv">🔴 LIVE</span>
-    <span id="dm-status" style="color:var(--dim);font-size:9px">Private conversation</span>
+  <div class="chat-info-bar" style="background:linear-gradient(90deg,rgba(167,139,250,.05),rgba(91,127,255,.03))">
+    <span class="lv" style="color:var(--acc2)">🟣 LIVE</span>
+    <span style="color:rgba(167,139,250,.5);font-size:9px">Direct message</span>
     <div style="flex:1"></div>
-    <span style="font-size:8px;color:rgba(52,211,153,.6);background:rgba(52,211,153,.06);
-      border:1px solid rgba(52,211,153,.15);border-radius:5px;padding:2px 7px;
-      font-family:var(--FD);letter-spacing:.06em">🔒 PRIVATE</span>
+    <span style="font-size:8px;color:rgba(167,139,250,.8);background:rgba(167,139,250,.07);
+      border:1px solid rgba(167,139,250,.2);border-radius:5px;padding:2px 8px;
+      font-family:var(--FD);letter-spacing:.08em">🔒 PRIVATE</span>
   </div>
   <!-- Messages -->
   <div id="dm-msgs"></div>
@@ -1349,7 +1382,7 @@ button,input,[role=button]{touch-action:manipulation}
     <div class="cinrow">
       <button class="file-btn" onclick="document.getElementById('dm-file-input').click()" title="Send file">📎</button>
       <button class="voice-btn" id="dm-voice-btn" onclick="toggleDMRecording()" title="Voice note">🎙</button>
-      <input id="dm-ci" placeholder="Message…" autocomplete="off" maxlength="2000"/>
+      <input id="dm-ci" placeholder="Private message…" autocomplete="off" maxlength="2000" style="color:var(--txt)"/>
       <button class="add-reaction" onclick="toggleDMEmojiBar()" title="Emoji">😊</button>
       <button id="dm-send">
         <svg viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
@@ -3144,7 +3177,7 @@ async function openDM(user){
   // Header — show avatar prominently, keep name minimal for privacy
   document.getElementById('dm-ico').textContent=user.avatar||'🧑';
   document.getElementById('dm-nm').textContent='Private Chat';
-  document.getElementById('dm-sb').textContent='🔒 Private · only you two can see this';
+  document.getElementById('dm-sb').textContent='🔒 Only you two can see this';
 
   closeInfo(); closeChat();
   // Don't force online panel to close — just open DM
@@ -3219,7 +3252,7 @@ function appendDMMessage(m,isNew){
 
   d.innerHTML=`<div class="mav2">${m.sender_avatar||'🧑'}</div>
     <div class="mbody" style="position:relative">
-      <div class="mmeta">${isSelf?'You':'Them'} · ${t}</div>
+      <div class="mmeta">${isSelf?'You':'·'} <span style="opacity:.5">${t}</span></div>
       ${replyHtml}${contentHtml}
       <div class="msg-reactions" id="dm-reactions-${m.id||''}"></div>
       <div class="msg-time">${t}</div>
