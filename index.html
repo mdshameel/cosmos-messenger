@@ -1618,9 +1618,31 @@ function subscribeToChat(groupId){
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',
       filter:`group_id=eq.${groupId}`},payload=>{
       const m=payload.new;
+      // Only render messages from others — our own are already appended after insert
       if(m.sender_id!==ME.id){
         appendMessage(m,true);
       }
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages',
+      filter:`group_id=eq.${groupId}`},payload=>{
+      const m=payload.new;
+      // Reflect edits and deletes from others in real time
+      const el=document.querySelector(`[data-msg-id="${m.id}"]`);
+      if(!el) return;
+      if(m.content){
+        const mt=el.querySelector('.mtext');
+        if(mt) mt.innerHTML=esc(m.content);
+        if(m.is_edited&&!el.querySelector('.msg-edited')){
+          const tag=document.createElement('div');
+          tag.className='msg-edited'; tag.textContent='edited';
+          mt?.parentNode?.insertBefore(tag,mt.nextSibling);
+        }
+      }
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'messages',
+      filter:`group_id=eq.${groupId}`},payload=>{
+      const el=document.querySelector(`[data-msg-id="${payload.old.id}"]`);
+      if(el){ el.style.transition='all .22s'; el.style.opacity='0'; el.style.transform='scale(.9)'; setTimeout(()=>el.remove(),220); }
     })
     .on('broadcast',{event:'typing'},payload=>{
       if(payload.payload.userId!==ME.id){
@@ -2040,20 +2062,24 @@ async function sendMsg(){
     sender_name:ME.name, sender_avatar:ME.avatar,
     content:text
   };
-  // Optimistic UI
-  appendMessage({...msgData,created_at:new Date().toISOString()},true);
-  // Send to DB (realtime will push to others)
-  const {error}=await SB.from('messages').insert(msgData);
+
+  // Insert first → get real UUID back → then render with real id
+  const {data:inserted, error}=await SB.from('messages')
+    .insert(msgData).select().single();
+  if(error){showToast('⚠ Send failed',true);return;}
+
+  // Append with real id so edit/delete work immediately
+  appendMessage({...inserted},true);
+
   // Cleanup old messages in public groups on every send
   const _grp = GROUPS[_chatId];
   if(_grp && _grp.is_public){
     const _cut = new Date(Date.now()-24*60*60*1000).toISOString();
     SB.from('messages').delete().eq('group_id',_chatId).lt('created_at',_cut).then(()=>{});
   }
-  if(error){showToast('⚠ Send failed',true);return;}
   // Update message count
   const g=GROUPS[_chatId];
-  if(g) await SB.from('groups').update({message_count:(g.message_count||0)+1}).eq('id',_chatId);
+  if(g) SB.from('groups').update({message_count:(g.message_count||0)+1}).eq('id',_chatId);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2065,10 +2091,9 @@ function showMsgMenu(e, m, msgEl, isSelf){
   closeMsgMenu();
   const menu=document.createElement('div');
   menu.className='msg-menu';
-  // Position near click but keep within viewport
-  const mx=Math.min(e.clientX, window.innerWidth-170);
-  const my=Math.min(e.clientY, window.innerHeight-160);
-  menu.style.cssText=`left:${mx}px;top:${my}px`;
+  // Temporarily add to measure height, then position
+  menu.style.cssText='left:-9999px;top:-9999px';
+  document.body.appendChild(menu);
 
   const items=[];
   // React always available
@@ -2091,7 +2116,14 @@ function showMsgMenu(e, m, msgEl, isSelf){
     menu.appendChild(d);
   });
 
-  document.body.appendChild(menu);
+  // Smart position — flip up if too close to bottom, flip left if too close to right
+  const mh=menu.offsetHeight||120;
+  const mw=menu.offsetWidth||160;
+  const spaceBelow = window.innerHeight - e.clientY;
+  const spaceRight  = window.innerWidth  - e.clientX;
+  const top  = spaceBelow > mh+16 ? e.clientY+4 : e.clientY-mh-4;
+  const left = spaceRight  > mw+16 ? e.clientX+4 : e.clientX-mw-4;
+  menu.style.cssText=`left:${Math.max(6,left)}px;top:${Math.max(56,top)}px`;
   _activeMenu=menu;
   setTimeout(()=>document.addEventListener('click',closeMsgMenu,{once:true}),50);
 }
