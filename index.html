@@ -1422,8 +1422,12 @@ function drawMinimap(L){
 
 function mmClick(e){
   const r=e.currentTarget.getBoundingClientRect();
-  tgt.x=-(e.clientX-r.left)/r.width*3500*2+3500;
-  tgt.y=-(e.clientY-r.top)/r.height*3500*2+3500;
+  // px in [0,1] → world in [-3500,3500] → cam target = -worldPos
+  const fx=(e.clientX-r.left)/r.width;
+  const fy=(e.clientY-r.top)/r.height;
+  const wx=(fx-0.5)*7000;
+  const wy=(fy-0.5)*7000;
+  tgt.x=-wx; tgt.y=-wy;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1530,6 +1534,8 @@ async function loadAll(){
   if(grpRes.data) grpRes.data.forEach(g=>{ GROUPS[g.id]=g; });
   layoutDirty=true;
   updateStats();
+  // Auto-resolve any collisions from existing data
+  resolveSystemCollisions();
 }
 
 async function loadMessages(groupId, limit=60){
@@ -2376,11 +2382,38 @@ function renderModal(){
       ${isGrp?`<div>
         <div class="ml">Parent System *</div>
         <div id="syspicker" class="syslist"></div>
-      </div>`:''}
+      </div>`:
+      `<div>
+        <div class="ml">Position in Space (optional)</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="flex:1">
+            <div style="font-size:8px;color:var(--dim);margin-bottom:3px;font-family:var(--FD);letter-spacing:.1em">X AXIS</div>
+            <input class="mi" id="m-wx" type="number" placeholder="Auto" style="text-align:center"/>
+          </div>
+          <div style="font-size:16px;color:var(--dim);padding-top:18px">×</div>
+          <div style="flex:1">
+            <div style="font-size:8px;color:var(--dim);margin-bottom:3px;font-family:var(--FD);letter-spacing:.1em">Y AXIS</div>
+            <input class="mi" id="m-wy" type="number" placeholder="Auto" style="text-align:center"/>
+          </div>
+          <button onclick="useCurrentViewPos()" style="margin-top:18px;padding:10px 12px;border-radius:9px;
+            background:rgba(91,127,255,.12);border:1px solid var(--bdr);color:var(--acc);
+            font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0">📍 Use current view</button>
+        </div>
+        <div style="font-size:9px;color:var(--dim);margin-top:4px;line-height:1.7">
+          Leave blank for auto-placement · Current view: <span id="m-viewpos" style="color:var(--acc)">X:0 Y:0</span>
+        </div>
+      </div>`}
       <div class="merr" id="merr" style="display:none"></div>
     </div>`;
-    setTimeout(()=>document.getElementById('m-n')?.focus(),80);
-    if(!_md.isPublic){ document.getElementById('ty-pub').classList.remove('sel'); document.getElementById('ty-prv').classList.add('sel'); }
+    setTimeout(()=>{
+      document.getElementById('m-n')?.focus();
+      // Show current camera world position
+      const vp=s2w(W/2,H/2);
+      const el=document.getElementById('m-viewpos');
+      if(el) el.textContent=`X:${Math.round(vp.x)} Y:${Math.round(vp.y)}`;
+      if(!_md.isPublic){ document.getElementById('ty-pub')?.classList.remove('sel'); document.getElementById('ty-prv')?.classList.add('sel'); }
+    },80);
+
     if(isGrp){ renderSysPicker(); }
   } else if(_mStep===2){
     body.innerHTML=`<div class="mbody">
@@ -2457,6 +2490,16 @@ function renderSysPicker(){
   });
 }
 
+function useCurrentViewPos(){
+  const vp=s2w(W/2,H/2);
+  const wx=document.getElementById('m-wx');
+  const wy=document.getElementById('m-wy');
+  if(wx) wx.value=Math.round(vp.x);
+  if(wy) wy.value=Math.round(vp.y);
+  const el=document.getElementById('m-viewpos');
+  if(el) el.textContent=`X:${Math.round(vp.x)} Y:${Math.round(vp.y)}`;
+}
+
 function selType(pub){
   _md.isPublic=pub;
   document.getElementById('ty-pub')?.classList.toggle('sel',pub);
@@ -2471,6 +2514,11 @@ function mNext(){
     if(_mType==='group'&&!_mSelSys){err.textContent='⚠ Select a system.';err.style.display='block';return;}
     err.style.display='none';
     _md.name=name; _md.desc=document.getElementById('m-d')?.value.trim()||'';
+    // Capture optional world position
+    const wxVal=document.getElementById('m-wx')?.value.trim();
+    const wyVal=document.getElementById('m-wy')?.value.trim();
+    _md.worldX = wxVal!==''&&wxVal!==undefined ? parseFloat(wxVal)||null : null;
+    _md.worldY = wyVal!==''&&wyVal!==undefined ? parseFloat(wyVal)||null : null;
     _mStep=2; renderModal();
   } else if(_mStep===2){
     _mStep=3; renderModal();
@@ -2482,12 +2530,20 @@ async function doCreate(){
   document.getElementById('mnx').disabled=true;
   document.getElementById('mnx').textContent='Creating…';
 
-  // Compute world position for systems
+  // Compute safe collision-free world position for systems
   let worldX=0,worldY=0;
   if(_mType==='system'){
-    const si=Object.keys(SYSTEMS).length;
-    const angle=si*GOLDEN, dist=si===0?0:500+si*380;
-    worldX=Math.cos(angle)*dist; worldY=Math.sin(angle)*dist;
+    if(Object.keys(SYSTEMS).length===0){
+      // First system: use user-chosen position from modal or center
+      worldX = _md.worldX||0; worldY = _md.worldY||0;
+    } else {
+      worldX = _md.worldX; worldY = _md.worldY;
+      // If no custom position, find a safe spot
+      if(worldX===undefined||worldX===null){
+        const pos = findSafeSystemPos();
+        worldX=pos.x; worldY=pos.y;
+      }
+    }
   }
 
   let newId=null;
@@ -3130,6 +3186,82 @@ async function saveProfile(){
   }
   closeProfile();
   showToast('✓ Profile updated!');
+}
+
+/* ═══════════════════════════════════════════════════════
+   COLLISION-FREE PLACEMENT
+═══════════════════════════════════════════════════════ */
+
+// Returns the "safe radius" of a system — sun + all planet orbits + buffer
+function systemSafeRadius(s){
+  const grps=Object.values(GROUPS).filter(g=>g.system_id===s.id);
+  const sunR=50+Math.min((s.member_count||1)*2,28);
+  const BASE=sunR*2.6+40;
+  const n=grps.length;
+  if(n===0) return sunR*3+80;
+  // Outermost orbit = BASE + (n-1)*(70 + planetR*2)
+  const outerOrbit = BASE + (n-1)*(70 + 38); // 38 = max planet r
+  return outerOrbit + 80; // buffer
+}
+
+function findSafeSystemPos(){
+  const existing=Object.values(SYSTEMS);
+  if(!existing.length) return {x:0,y:0};
+
+  // Try golden-angle spiral outward, pick first non-colliding spot
+  const MIN_GAP=120; // minimum world units between safe radii
+  for(let attempt=0; attempt<200; attempt++){
+    const angle=attempt*Math.PI*(3-Math.sqrt(5));
+    const dist=200+attempt*260;
+    const cx=Math.cos(angle)*dist;
+    const cy=Math.sin(angle)*dist;
+
+    // Check against all existing systems
+    let safe=true;
+    for(const s of existing){
+      const sr=systemSafeRadius(s);
+      const newR=80+MIN_GAP; // new system's safe radius estimate
+      const dx=(s.world_x||s._sx||0)-cx;
+      const dy=(s.world_y||s._sy||0)-cy;
+      const dist2=Math.sqrt(dx*dx+dy*dy);
+      if(dist2 < sr+newR){ safe=false; break; }
+    }
+    if(safe) return {x:cx,y:cy};
+  }
+  // Fallback — very far out
+  return {x:2000+Math.random()*1000, y:2000+Math.random()*1000};
+}
+
+// Auto-push overlapping systems apart (called after loadAll)
+function resolveSystemCollisions(){
+  const sysArr=Object.values(SYSTEMS);
+  if(sysArr.length<2) return;
+  let moved=false;
+  for(let iter=0;iter<30;iter++){
+    let anyMoved=false;
+    for(let i=0;i<sysArr.length;i++){
+      for(let j=i+1;j<sysArr.length;j++){
+        const a=sysArr[i], b=sysArr[j];
+        const ax=a.world_x||0, ay=a.world_y||0;
+        const bx=b.world_x||0, by=b.world_y||0;
+        const sr=systemSafeRadius(a)+systemSafeRadius(b)+100;
+        const dx=bx-ax, dy=by-ay;
+        const d=Math.sqrt(dx*dx+dy*dy)||1;
+        if(d<sr){
+          const push=(sr-d)/2+5;
+          const nx=dx/d, ny=dy/d;
+          // Push both apart
+          a.world_x=(ax-nx*push); a.world_y=(ay-ny*push);
+          b.world_x=(bx+nx*push); b.world_y=(by+ny*push);
+          a._sx=a.world_x; a._sy=a.world_y;
+          b._sx=b.world_x; b._sy=b.world_y;
+          anyMoved=true; moved=true;
+        }
+      }
+    }
+    if(!anyMoved) break;
+  }
+  if(moved) layoutDirty=true;
 }
 
 /* ═══════════════════════════════════════════════════════
