@@ -2105,100 +2105,118 @@ function drawFrame(){
     if(item.kind==='system'){
       /* ═══════════════════════ S U N ═══════════════════════ */
 
-      // Layer 0 — wide soft outer corona, slow pulse
+      // Animated ring tilt — slow forward/backward wobble like a spinning top
+      // tiltY: how "flat" the rings look. Oscillates ±6° over ~20s
+      const ringTiltBase = 0.18;                                   // base flatness
+      const ringWobble   = 0.06*Math.sin(T*0.28+seed*0.5);        // slow wobble
+      const ringTiltY    = ringTiltBase + ringWobble;              // final y-scale of ellipse
+      // Slight in-plane rotation swing
+      const ringRotSwing = 0.18*Math.sin(T*0.22+seed*0.3);        // ±10° swing
+      const ringRot      = 0.30 + ringRotSwing;
+
+      // Helper — draw one ring arc from angle a0→a1 with gradient & width
+      const drawRingArc=(rr,ry,rot,a0,a1,alpha,lw,bright)=>{
+        const toHex=v=>Math.round(Math.max(0,Math.min(255,v))*255/255*255).toString(16).padStart(2,'0');
+        const rg=ctx.createLinearGradient(sc.x-rr,sc.y,sc.x+rr,sc.y);
+        const a=alpha;
+        rg.addColorStop(0,   col+Math.round(a*.12*255).toString(16).padStart(2,'0'));
+        rg.addColorStop(.15, col+Math.round(a*.5*255).toString(16).padStart(2,'0'));
+        rg.addColorStop(.35, col+Math.round(a*.85*255).toString(16).padStart(2,'0'));
+        rg.addColorStop(.5,  `rgba(${Math.min(255,cr+(bright||55))},${Math.min(255,cg+(bright?bright*.6:40))},${cb_},${a})`);
+        rg.addColorStop(.65, col+Math.round(a*.85*255).toString(16).padStart(2,'0'));
+        rg.addColorStop(.85, col+Math.round(a*.5*255).toString(16).padStart(2,'0'));
+        rg.addColorStop(1,   col+Math.round(a*.12*255).toString(16).padStart(2,'0'));
+        ctx.beginPath();
+        ctx.ellipse(sc.x,sc.y,rr,rr*ry,rot,a0,a1);
+        ctx.strokeStyle=rg; ctx.lineWidth=r*lw; ctx.stroke();
+      };
+
+      const RINGS=[
+        {s:1.75, a:.78, lw:.26, br:60},
+        {s:2.12, a:.52, lw:.16, br:45},
+        {s:2.50, a:.32, lw:.11, br:30},
+        {s:2.90, a:.18, lw:.08, br:20},
+      ];
+
+      // ── PASS 1: back half of rings (behind sphere) ──
+      // Back = top half of ellipse = π→2π (angles that render "above" centre)
+      ctx.save();
+      RINGS.forEach(({s,a,lw,br})=>{
+        drawRingArc(r*s, ringTiltY, ringRot, Math.PI, Math.PI*2, a*.55, lw, br);
+      });
+      ctx.restore();
+
+      // ── CORONA & GLOW (drawn before sphere) ──
       const pulse=0.82+0.18*Math.sin(T*0.55+seed);
-      const cR=r*(4+pulse);
-      const cg0=ctx.createRadialGradient(sc.x,sc.y,r*.5,sc.x,sc.y,cR);
-      cg0.addColorStop(0,  `rgba(${cr},${cg},${cb_},.22)`);
-      cg0.addColorStop(.25,`rgba(${cr},${cg},${cb_},.09)`);
-      cg0.addColorStop(.6, `rgba(${cr},${Math.max(0,cg-40)},0,.03)`);
+      const cR=r*(4+pulse*.8);
+      const cg0=ctx.createRadialGradient(sc.x,sc.y,r*.55,sc.x,sc.y,cR);
+      cg0.addColorStop(0,  `rgba(${cr},${cg},${cb_},.24)`);
+      cg0.addColorStop(.2, `rgba(${cr},${cg},${cb_},.10)`);
+      cg0.addColorStop(.55,`rgba(${cr},${Math.max(0,cg-40)},0,.03)`);
       cg0.addColorStop(1,  'rgba(0,0,0,0)');
       ctx.beginPath(); ctx.arc(sc.x,sc.y,cR,0,Math.PI*2);
       ctx.fillStyle=cg0; ctx.fill();
 
-      // Layer 1 — mid glow ring (tighter, brighter)
-      const mg=ctx.createRadialGradient(sc.x,sc.y,r*.85,sc.x,sc.y,r*2.1);
-      mg.addColorStop(0, `rgba(${Math.min(255,cr+30)},${Math.min(255,cg+20)},${cb_},.38)`);
-      mg.addColorStop(.5, `rgba(${cr},${cg},${cb_},.12)`);
-      mg.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.beginPath(); ctx.arc(sc.x,sc.y,r*2.1,0,Math.PI*2);
+      const mg=ctx.createRadialGradient(sc.x,sc.y,r*.9,sc.x,sc.y,r*2.0);
+      mg.addColorStop(0,`rgba(${Math.min(255,cr+30)},${Math.min(255,cg+20)},${cb_},.40)`);
+      mg.addColorStop(.5,`rgba(${cr},${cg},${cb_},.12)`);
+      mg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(sc.x,sc.y,r*2.0,0,Math.PI*2);
       ctx.fillStyle=mg; ctx.fill();
 
-      // Layer 2 — rings drawn BEHIND sphere using clip exclusion
-      // Draw full rings, then re-draw sphere on top
-      const RINGS=[
-        {s:1.8, ry:.19, a:.72, lw:.24},
-        {s:2.18,ry:.17, a:.48, lw:.15},
-        {s:2.55,ry:.15, a:.28, lw:.10},
-        {s:2.95,ry:.13, a:.15, lw:.07},
-      ];
-      ctx.save();
-      RINGS.forEach(({s,ry,a,lw})=>{
-        const rr=r*s;
-        // Ring gradient — bright at sides, dim at top/bottom
-        const rg=ctx.createLinearGradient(sc.x-rr,sc.y,sc.x+rr,sc.y);
-        const toHex=v=>Math.round(v*255).toString(16).padStart(2,'0');
-        rg.addColorStop(0,   col+toHex(a*.15));
-        rg.addColorStop(.18, col+toHex(a*.55));
-        rg.addColorStop(.38, col+toHex(a));
-        rg.addColorStop(.5,  `rgba(${Math.min(255,cr+55)},${Math.min(255,cg+40)},${cb_},${a})`);
-        rg.addColorStop(.62, col+toHex(a));
-        rg.addColorStop(.82, col+toHex(a*.55));
-        rg.addColorStop(1,   col+toHex(a*.15));
-        ctx.beginPath(); ctx.ellipse(sc.x,sc.y,rr,rr*ry,0.30,0,Math.PI*2);
-        ctx.strokeStyle=rg; ctx.lineWidth=r*lw; ctx.stroke();
-      });
-      ctx.restore();
-
-      // Layer 3 — sun sphere body, CLIPPED to circle
+      // ── SPHERE BODY (clipped) ──
       ctx.save();
       ctx.beginPath(); ctx.arc(sc.x,sc.y,r,0,Math.PI*2); ctx.clip();
 
-      // Base radial — hot white centre → deep orange/red edge
       const surfShift=0.035*Math.sin(T*0.35);
       const body=ctx.createRadialGradient(
         sc.x-r*(0.28+surfShift), sc.y-r*(0.26+surfShift), r*.01,
         sc.x+r*.08, sc.y+r*.08, r*1.05
       );
-      body.addColorStop(0,   'rgba(255,255,220,1)');
-      body.addColorStop(.06, `rgba(${Math.min(255,cr+90)},${Math.min(255,cg+70)},200,1)`);
-      body.addColorStop(.18, col+'ff');
-      body.addColorStop(.52, `rgba(${cr},${Math.max(0,cg-18)},${cb_},1)`);
-      body.addColorStop(.85, `rgba(${Math.max(0,cr-35)},${Math.max(0,cg-50)},${cb_},1)`);
-      body.addColorStop(1,   `rgba(${Math.max(0,cr-60)},${Math.max(0,cg-80)},0,1)`);
+      body.addColorStop(0,  'rgba(255,255,220,1)');
+      body.addColorStop(.06,`rgba(${Math.min(255,cr+90)},${Math.min(255,cg+70)},200,1)`);
+      body.addColorStop(.18,col+'ff');
+      body.addColorStop(.52,`rgba(${cr},${Math.max(0,cg-18)},${cb_},1)`);
+      body.addColorStop(.85,`rgba(${Math.max(0,cr-35)},${Math.max(0,cg-50)},${cb_},1)`);
+      body.addColorStop(1,  `rgba(${Math.max(0,cr-60)},${Math.max(0,cg-80)},0,1)`);
       ctx.fillStyle=body; ctx.fillRect(sc.x-r-1,sc.y-r-1,r*2+2,r*2+2);
 
-      // Surface convection bands — subtle horizontal ellipses inside clip
       if(r>16){
         for(let b=0;b<6;b++){
           const by=sc.y-r*.72+b*r*.29+Math.sin(T*.18+b*0.9)*r*.038;
           const bw=r*(0.88+Math.sin(T*.28+b*.8)*.05);
-          const bh=r*(0.048+b*.005);
           const ba=0.055+0.025*Math.sin(T*.22+b);
-          ctx.beginPath(); ctx.ellipse(sc.x+Math.sin(T*.12+b)*.04*r,by,bw,bh,0,0,Math.PI*2);
+          ctx.beginPath();
+          ctx.ellipse(sc.x+Math.sin(T*.12+b)*.04*r,by,bw,r*(0.048+b*.005),0,0,Math.PI*2);
           ctx.fillStyle=`rgba(${Math.max(0,cr-50)},${Math.max(0,cg-70)},0,${ba})`; ctx.fill();
         }
       }
 
-      // Limb darkening — dark ring around edge (real physics)
       const limb=ctx.createRadialGradient(sc.x,sc.y,r*.72,sc.x,sc.y,r);
       limb.addColorStop(0,'rgba(0,0,0,0)');
       limb.addColorStop(.7,'rgba(0,0,0,.05)');
-      limb.addColorStop(1,'rgba(0,0,0,.38)');
+      limb.addColorStop(1,'rgba(0,0,0,.40)');
       ctx.fillStyle=limb; ctx.fillRect(sc.x-r-1,sc.y-r-1,r*2+2,r*2+2);
+      ctx.restore(); // end sphere clip
 
-      ctx.restore(); // end clip
+      // ── PASS 2: front half of rings (in front of sphere) ──
+      // Front = bottom half of ellipse = 0→π
+      ctx.save();
+      RINGS.forEach(({s,a,lw,br})=>{
+        drawRingArc(r*s, ringTiltY, ringRot, 0, Math.PI, a, lw, br);
+      });
+      ctx.restore();
 
-      // Layer 4 — solar flares OUTSIDE clip, at limb
+      // ── Solar flares at limb ──
       if(r>14){
         for(let f=0;f<4;f++){
           const fa=T*.18+f*(Math.PI*.5)+seed*.4;
           const fl=r*(0.12+0.10*Math.abs(Math.sin(T*.65+f*1.8)));
           const fx=sc.x+Math.cos(fa)*r*.92;
-          const fy=sc.y+Math.sin(fa)*r*.3;
+          const fy=sc.y+Math.sin(fa)*r*.28;
           const fg=ctx.createRadialGradient(fx,fy,0,fx,fy,fl*2.5);
-          fg.addColorStop(0,`rgba(${Math.min(255,cr+80)},${Math.min(255,cg+100)},200,.3)`);
-          fg.addColorStop(.5,`rgba(${cr},${cg},${cb_},.08)`);
+          fg.addColorStop(0,`rgba(${Math.min(255,cr+80)},${Math.min(255,cg+100)},200,.28)`);
+          fg.addColorStop(.5,`rgba(${cr},${cg},${cb_},.07)`);
           fg.addColorStop(1,'rgba(0,0,0,0)');
           ctx.beginPath(); ctx.arc(fx,fy,fl*2.5,0,Math.PI*2);
           ctx.fillStyle=fg; ctx.fill();
