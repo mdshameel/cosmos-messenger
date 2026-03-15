@@ -535,6 +535,65 @@ body.panel-open #mm{
 #csend svg{width:13px;height:13px;fill:#fff}
 
 /* ── DM PANEL ── */
+/* ── DM INBOX PANEL ── */
+#dm-inbox{position:fixed;top:56px;right:0;bottom:0;width:390px;
+  background:linear-gradient(180deg,rgba(4,4,22,.99),rgba(2,2,14,.99));
+  border-left:1px solid rgba(167,139,250,.18);
+  display:flex;flex-direction:column;z-index:52;
+  transform:translateX(100%);transition:transform .38s cubic-bezier(.22,.72,0,1);
+  box-shadow:-20px 0 60px rgba(0,0,8,.95)}
+#dm-inbox.open{transform:translateX(0)}
+.inbox-hd{padding:14px 16px 10px;border-bottom:1px solid rgba(167,139,250,.12);
+  background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(91,127,255,.04));
+  flex-shrink:0;display:flex;align-items:center;gap:10px}
+.inbox-title{font-family:var(--FD);font-size:12px;font-weight:700;
+  color:rgba(200,180,255,.9);letter-spacing:.08em;flex:1}
+.inbox-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#141430 transparent}
+.convo-row{display:flex;align-items:center;gap:10px;padding:11px 14px;
+  cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(91,127,255,.06);
+  position:relative}
+.convo-row:hover{background:rgba(167,139,250,.08)}
+.convo-row.unread{background:rgba(167,139,250,.06)}
+.convo-av-wrap{position:relative;flex-shrink:0}
+.convo-av{width:40px;height:40px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(167,139,250,.4),rgba(4,4,30,.9));
+  border:2px solid rgba(167,139,250,.3);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  box-shadow:0 0 12px rgba(167,139,250,.15)}
+.convo-unread-dot{position:absolute;top:0;right:0;width:11px;height:11px;
+  border-radius:50%;background:var(--acc2);border:2px solid #04040e;
+  box-shadow:0 0 6px rgba(167,139,250,.7);display:none}
+.convo-unread-dot.show{display:block}
+.convo-info{flex:1;min-width:0}
+.convo-name{font-size:12px;font-weight:500;color:var(--txt);margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.convo-preview{font-size:10px;color:var(--dim);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.convo-time{font-size:9px;color:var(--dim);flex-shrink:0;font-family:var(--FD)}
+.convo-unread-count{min-width:18px;height:18px;border-radius:9px;
+  background:var(--acc2);color:#fff;font-size:9px;font-weight:700;
+  display:none;align-items:center;justify-content:center;padding:0 4px;flex-shrink:0}
+.convo-unread-count.show{display:flex}
+.inbox-empty{padding:40px 20px;text-align:center;color:var(--dim);font-size:11px;line-height:2.2}
+
+/* Unread dot on member avatars in member list */
+.mav-wrap{position:relative;flex-shrink:0}
+.mav-unread{position:absolute;top:-1px;right:-1px;width:9px;height:9px;
+  border-radius:50%;background:var(--acc2);border:2px solid #04040e;
+  display:none;box-shadow:0 0 5px rgba(167,139,250,.6)}
+.mav-unread.show{display:block}
+.mem-row{cursor:pointer}
+.mem-row:hover{background:rgba(91,127,255,.06);border-radius:8px;
+  padding-left:4px;margin-left:-4px;transition:all .15s}
+
+/* DM inbox button in topbar */
+#dm-inbox-btn{position:relative}
+#dm-inbox-badge{position:absolute;top:-3px;right:-3px;min-width:15px;height:15px;
+  border-radius:8px;background:var(--acc2);color:#fff;font-size:8px;font-weight:700;
+  display:none;align-items:center;justify-content:center;padding:0 3px;
+  border:2px solid #000008}
+#dm-inbox-badge.show{display:flex}
+
 #dm-panel{position:fixed;top:56px;right:0;bottom:0;width:390px;
   background:linear-gradient(180deg,rgba(4,4,22,.99) 0%,rgba(2,2,14,.99) 100%);
   border-left:1px solid rgba(91,127,255,.18);
@@ -1242,6 +1301,10 @@ body.panel-open #mm{
     <span style="font-size:11px">⭐</span>
     <span id="req-badge">0</span>
   </button>
+  <button class="tbtn" id="dm-inbox-btn" onclick="toggleDMInbox()" title="Messages">
+    <span style="font-size:11px">💬</span>
+    <span id="dm-inbox-badge">0</span>
+  </button>
   <!-- Profile -->
   <div class="tb-av-wrap" onclick="openProfile()" title="Edit profile">
     <div class="tb-av" id="tb-av">🧑</div>
@@ -1453,6 +1516,21 @@ body.panel-open #mm{
     </div>
     <div class="gs-danger" id="gs-danger-zone">
       <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- DM INBOX PANEL -->
+<div id="dm-inbox">
+  <div class="inbox-hd">
+    <div class="inbox-title">💬 Messages</div>
+    <button class="ph-x" onclick="toggleDMInbox()">×</button>
+  </div>
+  <div class="inbox-scroll" id="inbox-list">
+    <div class="inbox-empty">
+      <div style="font-size:32px;margin-bottom:8px">💬</div>
+      No conversations yet.<br>
+      <span style="font-size:9px;color:rgba(167,139,250,.4)">Message a member from any group</span>
     </div>
   </div>
 </div>
@@ -2824,7 +2902,8 @@ function checkPanelOpen(){
     document.getElementById('chat-panel').classList.contains('open') ||
     document.getElementById('info-panel').classList.contains('open') ||
     document.getElementById('dm-panel').classList.contains('open') ||
-    document.getElementById('online-panel').classList.contains('open');
+    document.getElementById('online-panel').classList.contains('open') ||
+    document.getElementById('dm-inbox').classList.contains('open');
   document.body.classList.toggle('panel-open', anyOpen);
 }
 
@@ -2868,17 +2947,41 @@ function openInfo(id){
     ml.innerHTML='';
     const mems=data||[];
     const isCreator = ME && g.created_by === ME.id;
-    mems.slice(0,12).forEach(m=>{
+    mems.slice(0,20).forEach(m=>{
+      if(m.user_id===ME.id) return; // skip self
       const d=document.createElement('div'); d.className='mem-row';
-      const isOnline=!!ONLINE[m.user_id]||(m.user_id===ME.id);
+      d.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:8px;cursor:pointer;transition:background .15s';
+      const isOnline=!!ONLINE[m.user_id];
       const canKick = isCreator && m.user_id !== ME.id;
-      d.innerHTML=`<div class="mav">${m.user_avatar||'🧑'}</div>
-        <div class="mname">${m.user_name}</div>
-        <div class="mrole">${m.user_id===g.created_by?'👑 Admin':'Member'}</div>
-        ${isOnline?'<div class="monl"></div>':''}
-        ${canKick?`<button class="kick-btn" title="Remove member" onclick="kickMember('${m.user_id}','${m.user_name}','${id}')">✕</button>`:''}`;
+      const rid=[ME.id,m.user_id].sort().join('_');
+      const hasUnread=_unreadDMs[rid]>0;
+      d.innerHTML=`
+        <div class="mav-wrap">
+          <div class="mav">${m.user_avatar||'🧑'}</div>
+          <div class="mav-unread${hasUnread?' show':''}" title="Unread messages"></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="mname" style="font-size:11px">${esc(m.user_name)}</div>
+          <div class="mrole">${m.user_id===g.created_by?'👑 Admin':'Member'}${isOnline?' · <span style="color:var(--grn);font-size:8px">● online</span>':''}</div>
+        </div>
+        <button onclick="event.stopPropagation();startMemberDM('${m.user_id}','${esc(m.user_name)}','${m.user_avatar||'🧑'}')"
+          style="padding:4px 8px;border-radius:7px;background:rgba(167,139,250,.1);
+          border:1px solid rgba(167,139,250,.22);color:rgba(167,139,250,.8);
+          font-size:9px;font-family:var(--FD);cursor:pointer;flex-shrink:0;
+          letter-spacing:.04em;transition:all .15s"
+          onmouseover="this.style.background='rgba(167,139,250,.22)'"
+          onmouseout="this.style.background='rgba(167,139,250,.1)'">✉ DM</button>
+        ${canKick?`<button class="kick-btn" title="Remove member" onclick="event.stopPropagation();kickMember('${m.user_id}','${m.user_name}','${id}')">✕</button>`:''}`;
+      d.onclick=()=>startMemberDM(m.user_id, m.user_name, m.user_avatar||'🧑');
       ml.appendChild(d);
     });
+    // Add self at top
+    const selfRow=document.createElement('div');
+    selfRow.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 4px;opacity:.55';
+    selfRow.innerHTML=`<div class="mav">${ME.avatar||'🧑'}</div>
+      <div style="flex:1"><div class="mname" style="font-size:11px">${esc(ME.name)} (you)</div>
+      <div class="mrole">${mems.find(m=>m.user_id===ME.id)?.user_id===g.created_by?'👑 Admin':'Member'}</div></div>`;
+    ml.insertBefore(selfRow, ml.firstChild);
     if(!mems.length) ml.innerHTML='<div style="font-size:10px;color:var(--dim)">No members yet.</div>';
   });
 
@@ -3497,6 +3600,9 @@ async function openDM(user){
   msgs.scrollTop=msgs.scrollHeight;
   document.getElementById('dm-ci').focus();
   subscribeToDM(rid);
+  // Mark as read
+  _unreadDMs[rid]=0;
+  updateDMInboxBadge();
 }
 
 function closeDM(){
@@ -3773,7 +3879,10 @@ async function sendDM(){
   const msgData={
     room_id:rid, sender_id:ME.id,
     sender_name:ME.name, sender_avatar:ME.avatar,
-    recipient_id:_dmUser.userId, content:text,
+    recipient_id:_dmUser.userId,
+    recipient_name:_dmUser.name||'Member',
+    recipient_avatar:_dmUser.avatar||'🧑',
+    content:text,
     reply_to_id:_dmReplyTo?.id||null,
     reply_to_sender:_dmReplyTo?.sender||null,
     reply_to_text:_dmReplyTo?.text||null,
@@ -4926,6 +5035,160 @@ function resolveSystemCollisions(){
 }
 
 /* ═══════════════════════════════════════════════════════
+   DM INBOX & UNREAD TRACKING
+═══════════════════════════════════════════════════════ */
+let _dmInboxOpen=false;
+let _unreadDMs={}; // roomId -> unread count
+let _dmConversations=[]; // [{userId, userName, userAvatar, roomId, lastMsg, lastTime, unread}]
+
+function toggleDMInbox(){
+  _dmInboxOpen=!_dmInboxOpen;
+  document.getElementById('dm-inbox').classList.toggle('open',_dmInboxOpen);
+  if(_dmInboxOpen){
+    document.body.classList.add('panel-open');
+    loadDMInbox();
+  } else { checkPanelOpen(); }
+}
+
+// Open DM directly from member list (works offline — user doesn't need to be online)
+function startMemberDM(userId, userName, userAvatar){
+  openDM({userId, name:userName, avatar:userAvatar, privacy:'public'});
+  // Clear unread for this room
+  const rid=[ME.id,userId].sort().join('_');
+  _unreadDMs[rid]=0;
+  updateDMInboxBadge();
+  // Refresh member list dots
+  refreshUnreadDots();
+}
+
+async function loadDMInbox(){
+  if(!ME||!SB) return;
+  const list=document.getElementById('inbox-list');
+  list.innerHTML='<div class="inbox-empty" style="padding:20px"><div style="font-size:20px">⏳</div>Loading…</div>';
+
+  // Load all DMs involving ME — sent or received
+  const {data:sent}=await SB.from('direct_messages')
+    .select('*').eq('sender_id',ME.id)
+    .order('created_at',{ascending:false}).limit(200);
+  const {data:recv}=await SB.from('direct_messages')
+    .select('*').eq('recipient_id',ME.id)
+    .order('created_at',{ascending:false}).limit(200);
+
+  const all=[...(sent||[]),...(recv||[])];
+  if(!all.length){
+    list.innerHTML=`<div class="inbox-empty">
+      <div style="font-size:32px;margin-bottom:8px">💬</div>
+      No conversations yet.<br>
+      <span style="font-size:9px;color:rgba(167,139,250,.4)">Tap ✉ DM next to any member</span>
+    </div>`;
+    return;
+  }
+
+  // Group by room_id, keep latest message per room
+  const rooms={};
+  all.forEach(m=>{
+    if(!rooms[m.room_id]||new Date(m.created_at)>new Date(rooms[m.room_id].created_at)){
+      rooms[m.room_id]=m;
+    }
+  });
+
+  // Sort by latest first
+  const sorted=Object.values(rooms).sort((a,b)=>
+    new Date(b.created_at)-new Date(a.created_at));
+
+  list.innerHTML='';
+  sorted.forEach(m=>{
+    const isSent=m.sender_id===ME.id;
+    const otherId=isSent?m.recipient_id:m.sender_id;
+    const otherAvatar=isSent?(m.recipient_avatar||'🧑'):(m.sender_avatar||'🧑');
+    const otherName=isSent?(m.recipient_name||'Member'):(m.sender_name||'Member');
+    const unread=_unreadDMs[m.room_id]||0;
+    const t=new Date(m.created_at);
+    const now=new Date();
+    const diff=now-t;
+    const timeStr=diff<60000?'now':diff<3600000?Math.floor(diff/60000)+'m':
+      diff<86400000?Math.floor(diff/3600000)+'h':
+      t.toLocaleDateString([],{month:'short',day:'numeric'});
+
+    // Preview text
+    let preview='';
+    if(m.msg_type==='voice') preview='🎙 Voice message';
+    else if(m.msg_type==='file') preview='📎 File';
+    else preview=(isSent?'You: ':'')+((m.content||'').slice(0,40));
+
+    const row=document.createElement('div');
+    row.className='convo-row'+(unread>0?' unread':'');
+    row.innerHTML=`
+      <div class="convo-av-wrap">
+        <div class="convo-av">${otherAvatar}</div>
+        <div class="convo-unread-dot${unread>0?' show':''}"></div>
+      </div>
+      <div class="convo-info">
+        <div class="convo-name" style="font-weight:${unread>0?700:400}">${esc(otherName)}</div>
+        <div class="convo-preview" style="color:${unread>0?'rgba(200,180,255,.8)':'var(--dim)'}">${esc(preview)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="convo-time">${timeStr}</div>
+        <div class="convo-unread-count${unread>0?' show':''}">${unread>9?'9+':unread}</div>
+      </div>`;
+    row.onclick=()=>{
+      _unreadDMs[m.room_id]=0;
+      updateDMInboxBadge();
+      toggleDMInbox();
+      openDM({userId:otherId, name:otherName, avatar:otherAvatar, privacy:'public'});
+    };
+    list.appendChild(row);
+  });
+}
+
+function updateDMInboxBadge(){
+  const total=Object.values(_unreadDMs).reduce((a,b)=>a+(b||0),0);
+  const b=document.getElementById('dm-inbox-badge');
+  if(b){ b.textContent=total>9?'9+':total; b.classList.toggle('show',total>0); }
+  refreshUnreadDots();
+}
+
+function refreshUnreadDots(){
+  // Update dots on member list avatars
+  document.querySelectorAll('.mav-unread').forEach(dot=>{
+    const row=dot.closest('.mem-row');
+    if(!row) return;
+    const dmBtn=row.querySelector('button[onclick*="startMemberDM"]');
+    if(!dmBtn) return;
+    const match=dmBtn.getAttribute('onclick').match(/'([^']+)'/);
+    if(!match) return;
+    const uid=match[1];
+    const rid=[ME.id,uid].sort().join('_');
+    dot.classList.toggle('show',(_unreadDMs[rid]||0)>0);
+  });
+}
+
+// Subscribe to incoming DMs globally (so we get notified even when DM panel closed)
+function subscribeToIncomingDMs(){
+  if(!ME) return;
+  SB.channel('incoming-dms-'+ME.id)
+    .on('postgres_changes',{
+      event:'INSERT',schema:'public',table:'direct_messages',
+      filter:`recipient_id=eq.${ME.id}`
+    }, payload=>{
+      const m=payload.new;
+      // Don't count if this DM room is currently open
+      const currentRid=_dmUser?[ME.id,_dmUser.userId].sort().join('_'):null;
+      if(m.room_id!==currentRid){
+        _unreadDMs[m.room_id]=(_unreadDMs[m.room_id]||0)+1;
+        updateDMInboxBadge();
+        // Show notification
+        const senderName=m.sender_name||'Someone';
+        const preview=m.msg_type==='voice'?'🎙 Voice message':
+          m.msg_type==='file'?'📎 File':
+          (m.content||'').slice(0,40);
+        showToast(`💬 New message: ${preview}`);
+      }
+    })
+    .subscribe();
+}
+
+/* ═══════════════════════════════════════════════════════
    PRIVACY & REQUESTS
 ═══════════════════════════════════════════════════════ */
 let requestsPanelOpen=false;
@@ -5205,6 +5468,7 @@ async function startUniverse(){
   startPresence();
   loadMyRequests();
   subscribeToRequests();
+  subscribeToIncomingDMs();
   // Notification perm requested after user interaction (openChat)
   setTimeout(()=>{ document.getElementById('hint').style.opacity='0'; },7000);
 }
