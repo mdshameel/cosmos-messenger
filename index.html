@@ -5,9 +5,27 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
 <title>COSMOS — Universe Messenger</title>
 <meta name="description" content="Real-time space-themed group chat. Create solar systems, invite friends, chat live."/>
+
+<!-- PWA Meta Tags -->
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="COSMOS"/>
+<meta name="application-name" content="COSMOS"/>
+<meta name="theme-color" content="#04041e"/>
+<meta name="msapplication-navbutton-color" content="#04041e"/>
+<meta name="msapplication-starturl" content="/cosmos-messenger/"/>
+
+<!-- App Icons (generated inline as data URIs so no extra files needed) -->
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+
+<!-- Open Graph -->
 <meta property="og:title" content="COSMOS — Universe Messenger"/>
 <meta property="og:description" content="Real-time space chat. Create solar systems, explore the universe together."/>
 <meta property="og:type" content="website"/>
+<meta property="og:image" content="icon-512.png"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
@@ -1287,22 +1305,22 @@ body.panel-open #mm{
   <div class="tstat"><strong id="ng">0</strong>groups</div>
   <div class="sp"></div>
   <!-- Nav buttons -->
-  <button class="tbtn" onclick="openJoinCode()">🔗 Join</button>
-  <button class="tbtn" onclick="openModal('group')" id="btn-grp">🪐 Group</button>
-  <button class="tbtn pri" onclick="openModal('system')" id="btn-sys">☀️ New System</button>
+  <button class="tbtn" onclick="openJoinCode()" style="gap:5px"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Join</button>
+  <button class="tbtn" onclick="openModal('group')" id="btn-grp" style="gap:5px"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px"><ellipse cx="12" cy="12" rx="10" ry="10" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg> Group</button>
+  <button class="tbtn pri" onclick="openModal('system')" id="btn-sys" style="gap:5px"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px"><path d="M12 2C12 2 13.2 8.8 16 12C13.2 15.2 12 22 12 22C12 22 10.8 15.2 8 12C10.8 8.8 12 2 12 2Z" fill="currentColor" opacity="0.9"/><path d="M2 12C2 12 8.8 10.8 12 8C15.2 10.8 22 12 22 12C22 12 15.2 13.2 12 16C8.8 13.2 2 12 2 12Z" fill="currentColor" opacity="0.9"/></svg> New System</button>
   <div class="vsep"></div>
   <!-- Online indicator — shows only your shared groups count -->
   <button class="tbtn" onclick="toggleOnline()" style="position:relative;gap:6px">
-    <span style="font-size:11px">👥</span>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9" stroke="currentColor" stroke-width="1.2"/><path d="M3 12H21" stroke="currentColor" stroke-width="1.2"/><path d="M4.5 7.5H19.5M4.5 16.5H19.5" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1"/></svg>
     <span id="online-count-label" style="font-size:9px">—</span>
     <span id="notif-badge">0</span>
   </button>
   <button class="tbtn" onclick="toggleRequests()" style="position:relative;gap:6px" title="Requests">
-    <span style="font-size:11px">⭐</span>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px"><path d="M12 2L12.8 9.2L18 4L13.8 9.8L22 8L15.2 12L22 16L13.8 14.2L18 20L12.8 14.8L12 22L11.2 14.8L6 20L10.2 14.2L2 16L8.8 12L2 8L10.2 9.8L6 4L11.2 9.2L12 2Z" fill="currentColor"/></svg>
     <span id="req-badge">0</span>
   </button>
   <button class="tbtn" id="dm-inbox-btn" onclick="toggleDMInbox()" title="Messages">
-    <span style="font-size:11px">💬</span>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 10h.01M12 10h.01M16 10h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <span id="dm-inbox-badge">0</span>
   </button>
   <!-- Profile -->
@@ -1355,25 +1373,49 @@ body.panel-open #mm{
 <!-- MOBILE BOTTOM NAV -->
 <div id="mobile-nav">
   <button class="mnav-btn active" id="mnav-explore" onclick="mnavTab('explore')">
-    <span class="mnav-ico">🌌</span>
+    <span class="mnav-ico"><svg viewBox="0 0 24 24" fill="none" style="width:20px;height:20px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="1.2"/><path d="M12 6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6 2.69-6 6-6z" stroke="currentColor" stroke-width="1" stroke-dasharray="3 2"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg></span>
     <span class="mnav-lbl">Explore</span>
   </button>
   <button class="mnav-btn" id="mnav-join" onclick="openJoinCode()">
-    <span class="mnav-ico">🔗</span>
+    <span class="mnav-ico"><svg viewBox="0 0 24 24" fill="none" style="width:20px;height:20px"><circle cx="12" cy="12" r="3" fill="currentColor"/><ellipse cx="12" cy="12" rx="9" ry="3.5" stroke="currentColor" stroke-width="1.5"/></svg></span>
     <span class="mnav-lbl">Join</span>
   </button>
   <button class="mnav-btn" id="mnav-create" onclick="openModal('system')">
-    <span class="mnav-ico">☀️</span>
+    <span class="mnav-ico"><svg viewBox="0 0 24 24" fill="none" style="width:20px;height:20px"><path d="M12 2C12 2 13 8 16 12C13 16 12 22 12 22C12 22 11 16 8 12C11 8 12 2 12 2Z" fill="currentColor"/><path d="M2 12C2 12 8 11 12 8C16 11 22 12 22 12C22 12 16 13 12 16C8 13 2 12 2 12Z" fill="currentColor"/></svg></span>
     <span class="mnav-lbl">New</span>
   </button>
   <button class="mnav-btn" id="mnav-group" onclick="openModal('group')">
-    <span class="mnav-ico">🪐</span>
+    <span class="mnav-ico"><svg viewBox="0 0 24 24" fill="none" style="width:20px;height:20px"><ellipse cx="12" cy="12" rx="9" ry="9" stroke="currentColor" stroke-width="1.4"/><ellipse cx="12" cy="12" rx="9" ry="3.8" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg></span>
     <span class="mnav-lbl">Group</span>
   </button>
   <button class="mnav-btn" id="mnav-online" onclick="toggleOnline()">
-    <span class="mnav-ico">👥</span>
+    <span class="mnav-ico"><svg viewBox="0 0 24 24" fill="none" style="width:20px;height:20px"><circle cx="9" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3 20c0-3.31 2.69-6 6-6s6 2.69 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="17" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M20 20c0-2.76-1.34-5-3-5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
     <span class="mnav-lbl" id="mnav-online-lbl">Online</span>
   </button>
+</div>
+
+<!-- PWA INSTALL BANNER -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;
+  padding:14px 16px;background:linear-gradient(135deg,rgba(4,4,30,.98),rgba(6,6,26,.98));
+  border-top:1px solid rgba(91,127,255,.25);backdrop-filter:blur(20px);
+  display:none;align-items:center;gap:12px;
+  box-shadow:0 -4px 24px rgba(0,0,0,.6)">
+  <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#1a1a4e,#0d0d2e);
+    border:1px solid rgba(91,127,255,.3);display:flex;align-items:center;justify-content:center;
+    font-size:22px;flex-shrink:0">🌌</div>
+  <div style="flex:1">
+    <div style="font-family:var(--FD);font-size:11px;font-weight:700;color:#fff;letter-spacing:.06em">Install COSMOS</div>
+    <div style="font-size:10px;color:var(--dim);margin-top:1px">Add to home screen for the full app experience</div>
+  </div>
+  <button id="pwa-install-btn" style="padding:8px 14px;border-radius:9px;
+    background:linear-gradient(135deg,var(--acc),#4a6aee);border:none;color:#fff;
+    font-family:var(--FD);font-size:10px;font-weight:700;letter-spacing:.06em;cursor:pointer">
+    Install
+  </button>
+  <button onclick="document.getElementById('pwa-banner').style.display='none'"
+    style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.06);
+    border:1px solid var(--bdr);color:var(--dim);font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
 </div>
 
 <!-- HINT / TOAST -->
@@ -5427,6 +5469,36 @@ function showToast(msg, isErr=false){
 }
 
 /* ═══════════════════════════════════════════════════════
+   PWA INSTALL PROMPT
+═══════════════════════════════════════════════════════ */
+let _pwaPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  _pwaPrompt=e;
+  // Show banner after 3 seconds
+  setTimeout(()=>{
+    const b=document.getElementById('pwa-banner');
+    if(b) b.style.display='flex';
+  },3000);
+});
+
+document.getElementById('pwa-install-btn')?.addEventListener('click',async()=>{
+  if(!_pwaPrompt) return;
+  _pwaPrompt.prompt();
+  const {outcome}=await _pwaPrompt.userChoice;
+  if(outcome==='accepted'){
+    document.getElementById('pwa-banner').style.display='none';
+    showToast('🚀 COSMOS installed! Check your home screen');
+  }
+  _pwaPrompt=null;
+});
+
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('pwa-banner').style.display='none';
+  _pwaPrompt=null;
+});
+
+/* ═══════════════════════════════════════════════════════
    KEYBOARD
 ═══════════════════════════════════════════════════════ */
 document.getElementById('csend').onclick=sendMsg;
@@ -5471,6 +5543,15 @@ async function startUniverse(){
   subscribeToIncomingDMs();
   // Notification perm requested after user interaction (openChat)
   setTimeout(()=>{ document.getElementById('hint').style.opacity='0'; },7000);
+}
+
+// ── PWA: Register service worker ──
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(reg=>console.log('SW registered:', reg.scope))
+      .catch(err=>console.log('SW registration failed:', err));
+  });
 }
 
 // On load: restore saved credentials or show setup
